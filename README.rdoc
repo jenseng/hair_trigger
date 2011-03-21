@@ -1,19 +1,134 @@
-= hairtrigger
+= HairTrigger
 
-Description goes here.
+HairTrigger lets you create and manage database triggers in a concise,
+db-agnostic, Rails-y way.
 
-== Contributing to hairtrigger
+== Install
+
+Assuming you're using bundler:
+
+1. install the gem
+2. let rails know about it (via Gemfile, environment.rb, whatever)
+3. create lib/tasks/hair_trigger.rake with the following:
+
+ $VERBOSE = nil
+ Dir["#{Gem.searcher.find('hair_trigger').full_gem_path}/lib/tasks/*.rake"].each { |ext| load ext }
+
+An alternative to steps 2 and 3 is to unpack it in vendor/plugins and delete
+its Gemfile.
+
+== Usage
  
-* Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet
-* Check out the issue tracker to make sure someone already hasn't requested it and/or contributed it
-* Fork the project
-* Start a feature/bugfix branch
-* Commit and push until you are happy with your contribution
-* Make sure to add tests for it. This is important so I don't break it in a future version unintentionally.
-* Please try not to mess with the Rakefile, version, or history. If you want to have your own version, or is otherwise necessary, that is fine, but please isolate to its own commit so I can cherry-pick around it.
+Declare triggers in your models and use a rake task to auto-generate the
+appropriate migration. For example:
+
+ class AccountUser < ActiveRecord::Base
+   trigger.after(:insert) do
+     "UPDATE accounts SET user_count = user_count + 1 WHERE id = NEW.account_id;"
+   end
+ end
+
+and then:
+
+ rake db:generate_trigger_migration
+
+This will create a db-agnostic migration for the trigger that mirrors the
+model declaration. You can also manage triggers manually in your migrations
+(via create_trigger/drop_trigger), though that ends up being more work.
+
+Note that these auto-generated create_trigger statements contain the
+":generated => true" option, indicating that they were created from the
+model definition. This is important, as the rake task will also generate
+appropriate drop/create statements for any model triggers that get removed
+or updated. It does this by diffing the current model trigger declarations
+and any auto-generated triggers from previous migrations.
+
+== Chainable Methods
+
+Triggers are built by chaining several methods together, ending in a block
+that specifies the SQL to be run when the trigger fires. Supported methods
+include:
+
+* name(trigger_name): Optional, inferred from other calls.
+* on(table_name): Ignored in models, required in migrations.
+* for_each(item): Defaults to :row, PostgreSQL/MySQL allow :statement.
+* before(*events): Shorthand for timing(:before).events(*events).
+* after(*events): Shorthand for timing(:after).events(*events).
+* where(conditions): Optional, limits when the trigger will fire.
+* security(user): Permissions/role to check when calling trigger, defaults to :invoker. PostgreSQL supports :definer, MySQL supports :definer and arbitrary users (syntax: 'user'@'host').
+* timing(timing): Required (but may be satisified by before/after). Possible values are :before/:after.
+* events(*events): Required (but may be satisified by before/after). MySQL/SQLite only support one action.
+* all: Noop, useful for trigger groups (see below).
+
+== Trigger Groups
+
+Trigger groups allow you to use a slightly more concise notation if you have
+several triggers that fire on a given model. This is also important for MySQL,
+since it does not support multiple triggers on a table for the same action
+and timing. For example:
+
+ trigger.after(:update) do |t|
+   t.all do # every row
+     # some sql
+   end
+   t.where("OLD.foo <> NEW.foo") do
+     # some more sql
+   end
+   t.where("OLD.bar <> NEW.bar") do
+     # some other sql
+   end
+ end
+
+For MySQL, this will just create a single trigger with conditional logic
+(since it doesn't support multiple triggers). PostgreSQL and SQLite will have
+distinct triggers. This same notation is also used within trigger migrations.
+MySQL does not currently support nested trigger groups.
+
+== Testing
+
+To stay on top of things, it's strongly recommended that you add a test or
+spec to ensure your migrations match your models. This is as simple as:
+
+ assert HairTrigger::migrations_current?
+
+This way you'll know if there are any outstanding migrations you need to
+create.
+
+== Warnings and Errors
+
+If you try something your adapter doesn't support (e.g. multiple triggering
+events for MySQL), you will get an error. If your adapter does support it, you
+will just get a warning to let you know your trigger is not portable. You can
+silence warnings via `HairTrigger::Builder.show_warnings = false`
+
+HairTrigger does not validate your SQL, so be sure to test it in all database
+you want to support.
+
+== Gotchas, Known Issues
+
+* HairTrigger does not check config.active_record.timestamped_migrations, it
+  always assumes it is true. As a workaround, you can rename the migration.
+* As is the case with ActiveRecord::Base#update_all or any direct SQL you do,
+  be careful to reload updated objects from the database. For example, the
+  following code will display the wrong count since we aren't reloading the
+  account:
+   a = Account.find(123)
+   a.account_users.create(:name => 'bob')
+   puts "count is now #{a.user_count}"
+* For repeated chained calls, the last one wins, there is currently no
+  merging.
+* If you want your code to be portable, the trigger actions should be
+  limited to INSERT/UPDATE/DELETE/SELECT, and conditional logic should be
+  handled through the :where option/method. Otherwise you'll likely run into
+  trouble due to differences in syntax and supported features.
+
+== Compatibility
+
+* Rails 2.3.x
+* Postgres 9.0+
+* MySQL 5.0+
+* SQLite 3.0+
 
 == Copyright
 
-Copyright (c) 2011 Jon Jensen. See LICENSE.txt for
-further details.
-
+Copyright (c) 2011 Jon Jensen. See LICENSE.txt for further details.
