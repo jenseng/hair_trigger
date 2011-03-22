@@ -13,10 +13,10 @@ require 'jeweler'
 Jeweler::Tasks.new do |gem|
   # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
   gem.name = "hairtrigger"
-  gem.homepage = "http://github.com/jenseng/hairtrigger"
+  gem.homepage = "http://github.com/jenseng/hair_trigger"
   gem.license = "MIT"
   gem.summary = %Q{easy database triggers for active record}
-  gem.description = %Q{}
+  gem.description = %Q{allows you to declare database triggers in ruby in your models, and then generate appropriate migrations as they change}
   gem.email = "jenseng@gmail.com"
   gem.authors = ["Jon Jensen"]
   gem.add_runtime_dependency "activerecord", ">=2.3.0", "<3.0"

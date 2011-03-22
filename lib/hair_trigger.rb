@@ -40,7 +40,7 @@ module HairTrigger
   end
 
   def self.migrations_current?
-    current_migrations.map(&:last).sort == current_triggers.sort
+    current_migrations.map(&:last).sort.eql? current_triggers.sort
   end
 end
 
