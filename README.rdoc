@@ -55,7 +55,7 @@ include:
 * before(*events): Shorthand for timing(:before).events(*events).
 * after(*events): Shorthand for timing(:after).events(*events).
 * where(conditions): Optional, limits when the trigger will fire.
-* security(user): Permissions/role to check when calling trigger, defaults to :invoker. PostgreSQL supports :definer, MySQL supports :definer and arbitrary users (syntax: 'user'@'host').
+* security(user): Permissions/role to check when calling trigger. PostgreSQL supports :invoker (default) and :definer, MySQL supports :definer (default) and arbitrary users (syntax: 'user'@'host').
 * timing(timing): Required (but may be satisified by before/after). Possible values are :before/:after.
 * events(*events): Required (but may be satisified by before/after). MySQL/SQLite only support one action.
 * all: Noop, useful for trigger groups (see below).
@@ -108,7 +108,7 @@ you want to support.
 
 * HairTrigger does not check config.active_record.timestamped_migrations, it
   always assumes it is true. As a workaround, you can rename the migration.
-* As is the case with ActiveRecord::Base#update_all or any direct SQL you do,
+* As is the case with ActiveRecord::Base.update_all or any direct SQL you do,
   be careful to reload updated objects from the database. For example, the
   following code will display the wrong count since we aren't reloading the
   account:

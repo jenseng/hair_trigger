@@ -4,10 +4,9 @@ require File.expand_path(File.dirname(__FILE__) + '/../lib/hair_trigger/builder.
 HairTrigger::Builder.show_warnings = false
 
 class MockAdapter
-  attr_reader :adapter_name, :config
-  def initialize(type, user = nil, host = nil)
+  attr_reader :adapter_name
+  def initialize(type)
     @adapter_name = type
-    @config = {:username => user, :host => host}
   end
 end
 
@@ -18,14 +17,14 @@ end
 describe "builder" do
   context "chaining" do
     it "should use the last redundant chained call" do
-      @adapter = MockAdapter.new("mysql", "user", "host")
+      @adapter = MockAdapter.new("mysql")
       builder.where(:foo).where(:bar).options[:where].should be(:bar)
     end
   end
 
   context "mysql" do
     before(:each) do
-      @adapter = MockAdapter.new("mysql", "user", "host")
+      @adapter = MockAdapter.new("mysql")
     end
 
     it "should create a single trigger for a group" do
@@ -49,7 +48,16 @@ describe "builder" do
 
     it "should accept security" do
       builder.on(:foos).after(:update).security(:definer){ "FOO" }.generate.
+        grep(/DEFINER/).size.should eql(0) # default, so we don't include it
+      builder.on(:foos).after(:update).security("CURRENT_USER"){ "FOO" }.generate.
+        grep(/DEFINER = CURRENT_USER/).size.should eql(1)
+      builder.on(:foos).after(:update).security("'user'@'host'"){ "FOO" }.generate.
         grep(/DEFINER = 'user'@'host'/).size.should eql(1)
+    end
+
+    it "should reject :invoker security" do
+      lambda { builder.on(:foos).after(:update).security(:invoker){ "FOO" } }.
+        should raise_error
     end
 
     it "should reject multiple timings" do
@@ -83,8 +91,15 @@ describe "builder" do
     end
 
     it "should accept security" do
+      builder.on(:foos).after(:update).security(:invoker){ "FOO" }.generate.
+        grep(/SECURITY/).size.should eql(0) # default, so we don't include it
       builder.on(:foos).after(:update).security(:definer){ "FOO" }.generate.
         grep(/SECURITY DEFINER/).size.should eql(1)
+    end
+
+    it "should reject arbitrary user security" do
+      lambda { builder.on(:foos).after(:update).security("'user'@'host'"){ "FOO" } }.
+        should raise_error
     end
 
     it "should accept multiple timings" do

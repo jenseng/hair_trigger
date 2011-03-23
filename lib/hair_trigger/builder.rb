@@ -68,9 +68,14 @@ module HairTrigger
     end
 
     def security(user)
-      return if user == :invoker # default behavior
-      raise_or_warn "sqlite doesn't support trigger security clauses", :sqlite
-      raise_or_warn "postgresql doesn't support arbitrary users for security clauses", :postgresql unless user == :definer
+      # sqlite default is n/a, mysql default is :definer, postgres default is :invoker
+      raise_or_warn "sqlite doesn't support trigger security", :sqlite
+      raise_or_warn "postgresql doesn't support arbitrary users for trigger security", :postgresql unless [:definer, :invoker].include?(user)
+      if user == :invoker
+        raise_or_warn "mysql doesn't support invoker trigger security", :mysql
+      elsif user != :definer && !(user.to_s =~ /\A'[^']+'@'[^']+'\z/) && !(user.to_s.downcase =~ /\Acurrent_user(\(\))?\z/)
+        raise_or_warn "mysql trigger security should be :definer, CURRENT_USER, or a valid mysql user (e.g. 'user'@'host')", :mysql
+      end
       options[:security] = user
     end
 
@@ -274,24 +279,21 @@ END;
     end
 
     def generate_trigger_postgresql
+      security = options[:security] if options[:security] && options[:security] != :invoker
       <<-SQL
 CREATE FUNCTION #{prepared_name}()
 RETURNS TRIGGER AS $$
 BEGIN
 #{normalize(prepared_actions, 1).rstrip}
 END;
-$$ LANGUAGE plpgsql#{options[:security] ? " SECURITY #{options[:security].to_s.upcase}" : ""};
+$$ LANGUAGE plpgsql#{security ? " SECURITY #{security.to_s.upcase}" : ""};
 CREATE TRIGGER #{prepared_name} #{options[:timing]} #{options[:events].join(" OR ")} ON #{options[:table]}
 FOR EACH #{options[:for_each]}#{prepared_where ? " WHEN (" + prepared_where + ')': ''} EXECUTE PROCEDURE #{prepared_name}();
       SQL
     end
 
     def generate_trigger_mysql
-      security = options[:security]
-      if security == :definer
-        config = @adapter.instance_variable_get(:@config)
-        security = "'#{config[:username]}'@'#{config[:host]}'"
-      end
+      security = options[:security] if options[:security] && options[:security] != :definer
       sql = <<-SQL
 CREATE #{security ? "DEFINER = #{security} " : ""}TRIGGER #{prepared_name} #{options[:timing]} #{options[:events].first} ON #{options[:table]}
 FOR EACH #{options[:for_each]}
