@@ -7,6 +7,7 @@ module HairTrigger
         options = name
         name = nil
       end
+      options[:compatibility] ||= ::HairTrigger::Builder::compatibility
       @triggers ||= []
       trigger = ::HairTrigger::Builder.new(name, options)
       @triggers << trigger

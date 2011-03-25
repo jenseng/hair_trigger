@@ -25,6 +25,20 @@ describe "builder" do
     end
   end
 
+  context "comparison" do
+    it "should view identical triggers as identical" do
+      @adapter = MockAdapter.new("mysql")
+      builder.on(:foos).after(:update){ "FOO" }.
+      should eql(builder.on(:foos).after(:update){ "FOO" })
+    end
+
+    it "should view incompatible triggers as different" do
+      @adapter = MockAdapter.new("mysql")
+      HairTrigger::Builder.new(nil, :adapter => @adapter, :compatibility => 0).on(:foos).after(:update){ "FOO" }.
+      should_not eql(builder.on(:foos).after(:update){ "FOO" })
+    end
+  end
+
   context "mysql" do
     before(:each) do
       @adapter = MockAdapter.new("mysql")
@@ -135,6 +149,11 @@ describe "builder" do
       lambda {
         builder.on(:foos).after(:truncate){ "FOO" }.generate
       }.should raise_error
+    end
+
+    it "should add a return statement if none is provided" do
+      builder.on(:foos).after(:update){ "FOO" }.generate.
+      grep(/RETURN NULL;/).size.should eql(1)
     end
 
     context "legacy" do

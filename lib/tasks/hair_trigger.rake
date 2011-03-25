@@ -61,11 +61,11 @@ namespace :db do
 
 class #{migration_name} < ActiveRecord::Migration
   def self.up
-    #{(up_drop_triggers + up_create_triggers).map{ |t| t.to_ruby('    ') }.join("\n").lstrip}
+    #{(up_drop_triggers + up_create_triggers).map{ |t| t.to_ruby('    ') }.join("\n\n").lstrip}
   end
 
   def self.down
-    #{(down_drop_triggers + down_create_triggers).map{ |t| t.to_ruby('    ') }.join("\n").lstrip}
+    #{(down_drop_triggers + down_create_triggers).map{ |t| t.to_ruby('    ') }.join("\n\n").lstrip}
   end
 end
       MIGRATION

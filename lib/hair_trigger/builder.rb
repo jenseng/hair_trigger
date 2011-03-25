@@ -9,6 +9,7 @@ module HairTrigger
 
     def initialize(name = nil, options = {})
       @adapter = options[:adapter]
+      @compatibility = options.delete(:compatibility) || self.class.compatibility
       @options = {}
       @chained_calls = []
       @errors = []
@@ -194,7 +195,7 @@ module HairTrigger
           str << actions_to_ruby("#{indent}  ") + "\n"
           str << "#{indent}end"
         else
-          str = "#{indent}create_trigger(#{prepared_name.inspect}, :generated => true).\n" +
+          str = "#{indent}create_trigger(#{prepared_name.inspect}, :generated => true, :compatibility => #{@compatibility}).\n" +
           "#{indent}    " + chained_calls_to_ruby(".\n#{indent}    ")
           if @triggers
             str << " do |t|\n"
@@ -220,7 +221,7 @@ module HairTrigger
 
     def hash
       prepare!
-      [self.options.hash, self.prepared_actions.hash, self.prepared_where.hash, self.triggers.hash].hash
+      [self.options.hash, self.prepared_actions.hash, self.prepared_where.hash, self.triggers.hash, @compatibility].hash
     end
 
     def errors
@@ -261,6 +262,7 @@ module HairTrigger
         raise DeclarationError, "trigger group did not define any triggers" if @triggers.empty?
       else
         @actions = block.call
+        @actions.sub!(/(\s*)\z/, ';\1') if @actions && !(@actions =~ /;\s*\z/)
       end
       # only the top-most block actually executes
       Array(generate).each{ |action| adapter.execute(action)} if options[:execute] && !@trigger_group
@@ -307,7 +309,7 @@ END;
     end
 
     def generate_trigger_postgresql
-      raise GenerationError, "truncate triggers are only supported on postgres 8.4 and greater" if version < 80400 && options[:events].include?('TRUNCATE')
+      raise GenerationError, "truncate triggers are only supported on postgres 8.4 and greater" if db_version < 80400 && options[:events].include?('TRUNCATE')
       raise GenerationError, "FOR EACH ROW triggers may not be triggered by truncate events" if options[:for_each] == 'ROW' && options[:events].include?('TRUNCATE')
       security = options[:security] if options[:security] && options[:security] != :invoker
       sql = <<-SQL
@@ -315,18 +317,28 @@ CREATE FUNCTION #{prepared_name}()
 RETURNS TRIGGER AS $$
 BEGIN
       SQL
-      if prepared_where && version < 90000
+      if prepared_where && db_version < 90000
         sql << normalize("IF #{prepared_where} THEN", 1)
         sql << normalize(prepared_actions, 2)
         sql << normalize("END IF;", 1)
       else
         sql << normalize(prepared_actions, 1)
       end
+      # if no return is specified at the end, be sure we set a sane one
+      unless prepared_actions =~ /return [^;]+;\s*\z/i
+        if options[:timing] == "AFTER" || options[:for_each] == 'STATEMENT'
+          sql << normalize("RETURN NULL;", 1)
+        elsif options[:events].include?('DELETE')
+          sql << normalize("RETURN OLD;", 1)
+        else
+          sql << normalize("RETURN NEW;", 1)
+        end
+      end
       sql << <<-SQL
 END;
 $$ LANGUAGE plpgsql#{security ? " SECURITY #{security.to_s.upcase}" : ""};
 CREATE TRIGGER #{prepared_name} #{options[:timing]} #{options[:events].join(" OR ")} ON #{options[:table]}
-FOR EACH #{options[:for_each]}#{prepared_where && version >= 90000 ? " WHEN (" + prepared_where + ')': ''} EXECUTE PROCEDURE #{prepared_name}();
+FOR EACH #{options[:for_each]}#{prepared_where && db_version >= 90000 ? " WHEN (" + prepared_where + ')': ''} EXECUTE PROCEDURE #{prepared_name}();
       SQL
     end
 
@@ -349,8 +361,8 @@ BEGIN
       sql << "END\n";
     end
 
-    def version
-      @version ||= case adapter_name
+    def db_version
+      @db_version ||= case adapter_name
         when :postgresql
           adapter.send(:postgresql_version)
       end
@@ -375,12 +387,37 @@ BEGIN
     class << self
       attr_writer :tab_spacing
       attr_writer :show_warnings
+
       def tab_spacing
         @tab_spacing ||= 4
       end
+
       def show_warnings
         @show_warnings = true if @show_warnings.nil?
         @show_warnings
+      end
+
+      def compatibility
+        @compatibility ||= begin
+          gem_version = (File.read(File.dirname(__FILE__) + '/../../VERSION').chomp rescue '0.1.3').split(/\./).map(&:to_i)
+          gem_version.instance_eval(<<-METHODS)
+            def <=>(other)
+              [size, other.size].max.times do |i|
+                c = self[i].to_i <=> other[i].to_i
+                return c unless c == 0
+              end
+              0
+            end
+            extend Comparable
+          METHODS
+          if gem_version <= [0, 1, 3]
+            0 # initial releases
+          else
+            1 # postgres RETURN bugfix
+          # TODO: add more as we implement things that change the generated
+          # triggers (e.g. chained call merging)
+          end
+        end
       end
     end
   end

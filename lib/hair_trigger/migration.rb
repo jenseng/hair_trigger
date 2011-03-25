@@ -4,13 +4,14 @@ module HairTrigger
 
     def method_missing_with_trigger_building(method, *arguments, &block)
       if extract_trigger_builders
-        if method.to_sym == :create_trigger
+        if method.to_sym == :create_trigger && arguments[1].delete(:generated)
           arguments.unshift(nil) if arguments.first.is_a?(Hash)
-          trigger = ::HairTrigger::Builder.new(*arguments) if arguments[1].delete(:generated)
+          arguments[1][:compatibility] ||= 0
+          trigger = ::HairTrigger::Builder.new(*arguments)
           (@trigger_builders ||= []) << trigger
           trigger
-        elsif method.to_sym == :drop_trigger
-          trigger = ::HairTrigger::Builder.new(arguments[0], {:table => arguments[1], :drop => true}) if arguments[2] && arguments[2].delete(:generated)
+        elsif method.to_sym == :drop_trigger && arguments[2] && arguments[2].delete(:generated)
+          trigger = ::HairTrigger::Builder.new(arguments[0], {:table => arguments[1], :drop => true})
           (@trigger_builders ||= []) << trigger
           trigger
         end
