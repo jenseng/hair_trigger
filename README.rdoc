@@ -186,7 +186,7 @@ you want to support.
 == Compatibility
 
 * Rails 2.3.x
-* Postgres 9.0+
+* Postgres 8.0+
 * MySQL 5.0+
 * SQLite 3.0+
 

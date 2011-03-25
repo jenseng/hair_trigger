@@ -5,8 +5,11 @@ HairTrigger::Builder.show_warnings = false
 
 class MockAdapter
   attr_reader :adapter_name
-  def initialize(type)
+  def initialize(type, methods = {})
     @adapter_name = type
+    methods.each do |key, value|
+      instance_eval("def #{key}; #{value.inspect}; end")
+    end
   end
 end
 
@@ -61,16 +64,22 @@ describe "builder" do
       }.should raise_error
     end
 
-    it "should reject multiple timings" do
+    it "should reject multiple events" do
       lambda {
         builder.on(:foos).after(:update, :delete){ "FOO" }.generate
+      }.should raise_error
+    end
+
+    it "should reject truncate" do
+      lambda {
+        builder.on(:foos).after(:truncate){ "FOO" }.generate
       }.should raise_error
     end
   end
 
   context "postgresql" do
     before(:each) do
-      @adapter = MockAdapter.new("postgresql")
+      @adapter = MockAdapter.new("postgresql", :postgresql_version => 90000)
     end
 
     it "should create multiple triggers for a group" do
@@ -106,7 +115,7 @@ describe "builder" do
       }.should raise_error
     end
 
-    it "should accept multiple timings" do
+    it "should accept multiple events" do
       builder.on(:foos).after(:update, :delete){ "FOO" }.generate.
         grep(/UPDATE OR DELETE/).size.should eql(1)
     end
@@ -115,6 +124,32 @@ describe "builder" do
       lambda {
         builder.name('A'*65).on(:foos).after(:update){ "FOO" }.generate
       }.should raise_error
+    end
+
+    it "should allow truncate with for_each statement" do
+      builder.on(:foos).after(:truncate).for_each(:statement){ "FOO" }.generate.
+      grep(/TRUNCATE.*FOR EACH STATEMENT/m).size.should eql(1)
+    end
+
+    it "should reject truncate with for_each row" do
+      lambda {
+        builder.on(:foos).after(:truncate){ "FOO" }.generate
+      }.should raise_error
+    end
+
+    context "legacy" do
+      it "should reject truncate pre-8.4" do
+        @adapter = MockAdapter.new("postgresql", :postgresql_version => 80300)
+        lambda {
+          builder.on(:foos).after(:truncate).for_each(:statement){ "FOO" }.generate
+        }.should raise_error
+      end
+
+      it "should use conditionals pre-9.0" do
+        @adapter = MockAdapter.new("postgresql", :postgresql_version => 80400)
+        builder.on(:foos).after(:insert).where("BAR"){ "FOO" }.generate.
+        grep(/IF BAR/).size.should eql(1)
+      end
     end
   end
 
@@ -154,9 +189,15 @@ describe "builder" do
       }.should raise_error
     end
 
-    it "should reject multiple timings" do
+    it "should reject multiple events" do
       lambda {
         builder.on(:foos).after(:update, :delete){ "FOO" }.generate
+      }.should raise_error
+    end
+
+    it "should reject truncate" do
+      lambda {
+        builder.on(:foos).after(:truncate){ "FOO" }.generate
       }.should raise_error
     end
   end

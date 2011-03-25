@@ -91,8 +91,9 @@ module HairTrigger
     def events(*events)
       events << :insert if events.delete(:create)
       events << :delete if events.delete(:destroy)
-      raise DeclarationError, "invalid events" unless events & [:insert, :update, :delete] == events
+      raise DeclarationError, "invalid events" unless events & [:insert, :update, :delete, :truncate] == events
       @errors << ["sqlite and mysql triggers may not be shared by multiple actions", :mysql, :sqlite] if events.size > 1
+      @errors << ["sqlite and mysql do not support truncate triggers", :mysql, :sqlite] if events.include?(:truncate)
       options[:events] = events.map{ |e| e.to_s.upcase }
     end
 
@@ -306,16 +307,26 @@ END;
     end
 
     def generate_trigger_postgresql
+      raise GenerationError, "truncate triggers are only supported on postgres 8.4 and greater" if version < 80400 && options[:events].include?('TRUNCATE')
+      raise GenerationError, "FOR EACH ROW triggers may not be triggered by truncate events" if options[:for_each] == 'ROW' && options[:events].include?('TRUNCATE')
       security = options[:security] if options[:security] && options[:security] != :invoker
-      <<-SQL
+      sql = <<-SQL
 CREATE FUNCTION #{prepared_name}()
 RETURNS TRIGGER AS $$
 BEGIN
-#{normalize(prepared_actions, 1).rstrip}
+      SQL
+      if prepared_where && version < 90000
+        sql << normalize("IF #{prepared_where} THEN", 1)
+        sql << normalize(prepared_actions, 2)
+        sql << normalize("END IF;", 1)
+      else
+        sql << normalize(prepared_actions, 1)
+      end
+      sql << <<-SQL
 END;
 $$ LANGUAGE plpgsql#{security ? " SECURITY #{security.to_s.upcase}" : ""};
 CREATE TRIGGER #{prepared_name} #{options[:timing]} #{options[:events].join(" OR ")} ON #{options[:table]}
-FOR EACH #{options[:for_each]}#{prepared_where ? " WHEN (" + prepared_where + ')': ''} EXECUTE PROCEDURE #{prepared_name}();
+FOR EACH #{options[:for_each]}#{prepared_where && version >= 90000 ? " WHEN (" + prepared_where + ')': ''} EXECUTE PROCEDURE #{prepared_name}();
       SQL
     end
 
@@ -336,6 +347,13 @@ BEGIN
         end
       end
       sql << "END\n";
+    end
+
+    def version
+      @version ||= case adapter_name
+        when :postgresql
+          adapter.send(:postgresql_version)
+      end
     end
 
     def interpolate(str)
