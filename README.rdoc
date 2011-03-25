@@ -193,6 +193,8 @@ you want to support.
 
 == Version History
 
+* 0.1.4 Compatibility tracking, fixed Postgres return bug, ensure last action
+  has a semicolon
 * 0.1.3 Better error handling, Postgres 8.x support, updated docs
 * 0.1.2 Fixed Builder#security, updated docs
 * 0.1.1 Fixed bug in HairTrigger.migrations_current?, fixed up Gemfile
