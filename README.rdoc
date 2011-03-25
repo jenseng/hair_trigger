@@ -62,7 +62,7 @@ declarations and any auto-generated triggers from previous migrations.
 You can also manage triggers manually in your migrations via create_trigger and
 drop_trigger. They are a little more verbose than model triggers, and they can
 be more work since you need to figure out the up/down create/drop logic when
-you change things. An sample trigger:
+you change things. A sample trigger:
 
  create_trigger.on(:users).after(:insert) do
    "UPDATE accounts SET user_count = user_count + 1 WHERE id = NEW.account_id;"
@@ -154,15 +154,16 @@ when you attempt to run the migration.
 
 Generation warnings are similar but they don't stop the trigger from being
 generated. If you do something adapter-specific supported by your database,
-you will still get a warning that your trigger is not portable. You can
-silence warnings via "HairTrigger::Builder.show_warnings = false"
+you will still get a warning ($stderr) that your trigger is not portable. You
+can silence warnings via "HairTrigger::Builder.show_warnings = false"
 
 You can validate your triggers beforehand using the Builder#validate! method.
-It will throw the approriate errors/warnings so that you know what to fix, e.g.
+It will throw the appropriate errors/warnings so that you know what to fix,
+e.g.
 
  > User.triggers.each(&:validate!)
 
-HairTrigger does not validate your SQL, so be sure to test it in all database
+HairTrigger does not validate your SQL, so be sure to test it in all databases
 you want to support.
 
 == Gotchas, Known Issues
