@@ -25,6 +25,14 @@ describe "builder" do
     end
   end
 
+  context "generation" do
+    it "should tack on a semicolon if none is provided" do
+      @adapter = MockAdapter.new("mysql")
+      builder.on(:foos).after(:update){ "FOO " }.generate.
+      grep(/FOO;/).size.should eql(1)
+    end
+  end
+
   context "comparison" do
     it "should view identical triggers as identical" do
       @adapter = MockAdapter.new("mysql")
