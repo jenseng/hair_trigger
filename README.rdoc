@@ -99,7 +99,7 @@ Permissions/role to check when calling trigger. PostgreSQL supports :invoker (de
 Required (but may be satisified by before/after). Possible values are :before/:after.
 
 ==== events(*events)
-Required (but may be satisified by before/after). Possible values are :insert/:update/:delete. MySQL/SQLite only support one action.
+Required (but may be satisified by before/after). Possible values are :insert/:update/:delete/:truncate. MySQL/SQLite only support one action per trigger, and don't support :truncate.
 
 ==== all
 Noop, useful for trigger groups (see below).
@@ -189,6 +189,13 @@ you want to support.
 * Postgres 8.0+
 * MySQL 5.0+
 * SQLite 3.0+
+
+== Version History
+
+* 0.1.3 Better error handling, Postgres 8.x support, updated docs
+* 0.1.2 Fixed Builder#security, updated docs
+* 0.1.1 Fixed bug in HairTrigger.migrations_current?, fixed up Gemfile
+* 0.1.0 Initial release
 
 == Copyright
 
