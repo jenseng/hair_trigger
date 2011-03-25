@@ -1,13 +1,17 @@
 module HairTrigger
   class Builder
+    class DeclarationError < StandardError; end
+    class GenerationError < StandardError; end
+  
     attr_accessor :options
     attr_reader :triggers # nil unless this is a trigger group
     attr_reader :prepared_actions, :prepared_where # after delayed interpolation
 
     def initialize(name = nil, options = {})
-      @adapter = options[:adapter] || ActiveRecord::Base.connection rescue nil
+      @adapter = options[:adapter]
       @options = {}
       @chained_calls = []
+      @errors = []
       set_name(name) if name
       {:timing => :after, :for_each => :row}.update(options).each do |key, value|
         if respond_to?("set_#{key}")
@@ -22,6 +26,7 @@ module HairTrigger
       @trigger_group = other
       @triggers = nil
       @chained_calls = []
+      @errors = []
       @options = @options.dup
       @options.delete(:name) # this will be inferred (or set further down the line)
       @options.each do |key, value|
@@ -34,18 +39,18 @@ module HairTrigger
     end
 
     def name(name)
-      raise_or_warn "trigger name cannot exceed 63 for postgres", :postgresql if name.to_s.size > 63
+      @errors << ["trigger name cannot exceed 63 for postgres", :postgresql] if name.to_s.size > 63
       options[:name] = name.to_s
     end
 
     def on(table)
-      raise "table has already been specified" if options[:table]
+      raise DeclarationError, "table has already been specified" if options[:table]
       options[:table] = table.to_s
     end
 
     def for_each(for_each)
-      raise_or_warn "sqlite doesn't support FOR EACH STATEMENT triggers", :sqlite if for_each == :statement
-      raise "invalid for_each" unless [:row, :statement].include?(for_each)
+      @errors << ["sqlite doesn't support FOR EACH STATEMENT triggers", :sqlite] if for_each == :statement
+      raise DeclarationError, "invalid for_each" unless [:row, :statement].include?(for_each)
       options[:for_each] = for_each.to_s.upcase
     end
 
@@ -68,27 +73,26 @@ module HairTrigger
     end
 
     def security(user)
-      # sqlite default is n/a, mysql default is :definer, postgres default is :invoker
-      raise_or_warn "sqlite doesn't support trigger security", :sqlite
-      raise_or_warn "postgresql doesn't support arbitrary users for trigger security", :postgresql unless [:definer, :invoker].include?(user)
-      if user == :invoker
-        raise_or_warn "mysql doesn't support invoker trigger security", :mysql
-      elsif user != :definer && !(user.to_s =~ /\A'[^']+'@'[^']+'\z/) && !(user.to_s.downcase =~ /\Acurrent_user(\(\))?\z/)
-        raise_or_warn "mysql trigger security should be :definer, CURRENT_USER, or a valid mysql user (e.g. 'user'@'host')", :mysql
+      unless [:invoker, :definer].include?(user) || user.to_s =~ /\A'[^']+'@'[^']+'\z/ || user.to_s.downcase =~ /\Acurrent_user(\(\))?\z/
+        raise DeclarationError, "trigger security should be :invoker, :definer, CURRENT_USER, or a valid user (e.g. 'user'@'host')"
       end
+      # sqlite default is n/a, mysql default is :definer, postgres default is :invoker
+      @errors << ["sqlite doesn't support trigger security", :sqlite]
+      @errors << ["postgresql doesn't support arbitrary users for trigger security", :postgresql] unless [:definer, :invoker].include?(user)
+      @errors << ["mysql doesn't support invoker trigger security", :mysql] if user == :invoker
       options[:security] = user
     end
 
     def timing(timing)
-      raise "invalid timing" unless [:before, :after].include?(timing)
+      raise DeclarationError, "invalid timing" unless [:before, :after].include?(timing)
       options[:timing] = timing.to_s.upcase
     end
 
     def events(*events)
       events << :insert if events.delete(:create)
       events << :delete if events.delete(:destroy)
-      raise "invalid events" unless events & [:insert, :update, :delete] == events
-      raise_or_warn "sqlite and mysql triggers may not be shared by multiple actions", :mysql, :sqlite if events.size > 1
+      raise DeclarationError, "invalid events" unless events & [:insert, :update, :delete] == events
+      @errors << ["sqlite and mysql triggers may not be shared by multiple actions", :mysql, :sqlite] if events.size > 1
       options[:events] = events.map{ |e| e.to_s.upcase }
     end
 
@@ -107,7 +111,7 @@ module HairTrigger
           def #{method}(*args)
             @chained_calls << :#{method}
             if @triggers || @trigger_group
-              raise_or_warn "mysql doesn't support #{method} within a trigger group", :mysql unless [:name, :where, :all].include?(:#{method})
+              @errors << ["mysql doesn't support #{method} within a trigger group", :mysql] unless [:name, :where, :all].include?(:#{method})
             end
             set_#{method}(*args, &(block_given? ? Proc.new : nil))
           end
@@ -138,16 +142,31 @@ module HairTrigger
       @prepared_actions = interpolate(@actions).rstrip if @actions
     end
 
-    def generate
-      return @triggers.map(&:generate).flatten if @triggers && !create_grouped_trigger?
+    def validate!(direction = :down)
+      @errors.each do |(error, *adapters)|
+        raise GenerationError, error if adapters.include?(adapter_name)
+        $stderr.puts "WARNING: " + message if self.class.show_warnings
+      end
+      if direction != :up
+        @triggers.each{ |t| t.validate!(:down) } if @triggers
+      end
+      if direction != :down
+        @trigger_group.validate!(:up) if @trigger_group
+      end
+    end
+
+    def generate(validate = true)
+      validate!(@trigger_group ? :both : :down) if validate
+
+      return @triggers.map{ |t| t.generate(false) }.flatten if @triggers && !create_grouped_trigger?
       prepare!
-      raise "need to specify the table" unless options[:table]
+      raise GenerationError, "need to specify the table" unless options[:table]
       if options[:drop]
         generate_drop_trigger
       else
-        raise "no actions specified" if @triggers && create_grouped_trigger? ? @triggers.any?{ |t| t.prepared_actions.nil? } : prepared_actions.nil?
-        raise "need to specify the event(s) (:insert, :update, :delete)" if !options[:events] || options[:events].empty?
-        raise "need to specify the timing (:before/:after)" unless options[:timing]
+        raise GenerationError, "no actions specified" if @triggers && create_grouped_trigger? ? @triggers.any?{ |t| t.prepared_actions.nil? } : prepared_actions.nil?
+        raise GenerationError, "need to specify the event(s) (:insert, :update, :delete)" if !options[:events] || options[:events].empty?
+        raise GenerationError, "need to specify the timing (:before/:after)" unless options[:timing]
 
         ret = [generate_drop_trigger]
         ret << case adapter_name
@@ -158,7 +177,7 @@ module HairTrigger
           when :postgresql
             generate_trigger_postgresql
           else
-            raise "don't know how to build #{adapter_name} triggers yet"
+            raise GenerationError, "don't know how to build #{adapter_name} triggers yet"
         end
         ret
       end
@@ -203,6 +222,10 @@ module HairTrigger
       [self.options.hash, self.prepared_actions.hash, self.prepared_where.hash, self.triggers.hash].hash
     end
 
+    def errors
+      (@triggers || []).inject(@errors){ |errors, t| errors + t.errors }
+    end
+
     private
 
     def chained_calls_to_ruby(join_str = '.')
@@ -230,21 +253,25 @@ module HairTrigger
 
     def maybe_execute(&block)
       if block.arity > 0 # we're creating a trigger group, so set up some stuff and pass the buck
-        raise_or_warn "trigger group must specify timing and event(s)", :mysql unless options[:timing] && options[:events]
-        raise_or_warn "nested trigger groups are not supported for mysql", :mysql if create_grouped_trigger? && @trigger_group
+        @errors << ["trigger group must specify timing and event(s) for mysql", :mysql] unless options[:timing] && options[:events]
+        @errors << ["nested trigger groups are not supported for mysql", :mysql] if @trigger_group
         @triggers = []
         block.call(self)
-        raise "trigger group did not define any triggers" if @triggers.empty?
+        raise DeclarationError, "trigger group did not define any triggers" if @triggers.empty?
       else
         @actions = block.call
       end
       # only the top-most block actually executes
-      Array(generate).each{ |action| @adapter.execute(action)} if options[:execute] && !@trigger_group
+      Array(generate).each{ |action| adapter.execute(action)} if options[:execute] && !@trigger_group
       self
     end
 
     def adapter_name
-      @adapter_name ||= @adapter.adapter_name.downcase.to_sym
+      @adapter_name ||= adapter.adapter_name.downcase.to_sym
+    end
+
+    def adapter
+      @adapter ||= ActiveRecord::Base.connection
     end
 
     def infer_name
@@ -264,7 +291,7 @@ module HairTrigger
         when :postgresql
           "DROP TRIGGER IF EXISTS #{prepared_name} ON #{options[:table]};\nDROP FUNCTION IF EXISTS #{prepared_name}();\n"
         else
-          raise "don't know how to drop #{adapter_name} triggers yet"
+          raise GenerationError, "don't know how to drop #{adapter_name} triggers yet"
       end
     end
 
@@ -325,14 +352,6 @@ BEGIN
         text.gsub!(/^/, ' ' * (indent - existing))
       end
       text.rstrip + "\n"
-    end
-
-    def raise_or_warn(message, *adapters)
-      if adapters.include?(adapter_name)
-        raise message
-      else
-        $stderr.puts "WARNING: " + message if self.class.show_warnings
-      end
     end
 
     class << self

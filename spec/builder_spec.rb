@@ -42,7 +42,7 @@ describe "builder" do
             t.where('BAR'){ 'BAR' }
             t.where('BAZ'){ 'BAZ' }
           }
-        }
+        }.generate
       }.should raise_error
     end
 
@@ -56,13 +56,15 @@ describe "builder" do
     end
 
     it "should reject :invoker security" do
-      lambda { builder.on(:foos).after(:update).security(:invoker){ "FOO" } }.
-        should raise_error
+      lambda {
+        builder.on(:foos).after(:update).security(:invoker){ "FOO" }.generate
+      }.should raise_error
     end
 
     it "should reject multiple timings" do
-      lambda { builder.on(:foos).after(:update, :delete){ "FOO" } }.
-        should raise_error
+      lambda {
+        builder.on(:foos).after(:update, :delete){ "FOO" }.generate
+      }.should raise_error
     end
   end
 
@@ -98,8 +100,10 @@ describe "builder" do
     end
 
     it "should reject arbitrary user security" do
-      lambda { builder.on(:foos).after(:update).security("'user'@'host'"){ "FOO" } }.
-        should raise_error
+      lambda {
+        builder.on(:foos).after(:update).security("'user'@'host'"){ "FOO" }.
+        generate
+      }.should raise_error
     end
 
     it "should accept multiple timings" do
@@ -108,8 +112,9 @@ describe "builder" do
     end
 
     it "should reject long names" do
-      lambda { builder.name('A'*65).on(:foos).after(:update){ "FOO" }}.
-        should raise_error
+      lambda {
+        builder.name('A'*65).on(:foos).after(:update){ "FOO" }.generate
+      }.should raise_error
     end
   end
 
@@ -138,18 +143,21 @@ describe "builder" do
     end
 
     it "should reject security" do
-      lambda { builder.on(:foos).after(:update).security(:definer){ "FOO" } }.
-        should raise_error
+      lambda {
+        builder.on(:foos).after(:update).security(:definer){ "FOO" }.generate
+      }.should raise_error
     end
 
     it "should reject for_each :statement" do
-      lambda { builder.on(:foos).after(:update).for_each(:statement){ "FOO" } }.
-        should raise_error
+      lambda {
+        builder.on(:foos).after(:update).for_each(:statement){ "FOO" }.generate
+      }.should raise_error
     end
 
     it "should reject multiple timings" do
-      lambda { builder.on(:foos).after(:update, :delete){ "FOO" } }.
-        should raise_error
+      lambda {
+        builder.on(:foos).after(:update, :delete){ "FOO" }.generate
+      }.should raise_error
     end
   end
 end

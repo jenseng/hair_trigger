@@ -1,23 +1,32 @@
 = HairTrigger
 
 HairTrigger lets you create and manage database triggers in a concise,
-db-agnostic, Rails-y way.
+db-agnostic, Rails-y way. You declare triggers right in your models in Ruby,
+and a simple rake task does all the dirty work for you.
 
 == Install
 
-Assuming you're using bundler:
+=== Step 1.
 
-1. install the gem
-2. let rails know about it (via Gemfile, environment.rb, whatever)
-3. create lib/tasks/hair_trigger.rake with the following:
+If you are using bundler, just put hairtrigger in your Gemfile. 
+
+If you're not using bundler, you can "gem install hairtrigger" and then put 
+hairtrigger in environment.rb
+
+=== Step 2.
+
+If you plan to use model triggers (which you should ;) you'll need to create
+lib/tasks/hair_trigger.rake with the following:
 
  $VERBOSE = nil
  Dir["#{Gem.searcher.find('hair_trigger').full_gem_path}/lib/tasks/*.rake"].each { |ext| load ext }
 
-An alternative to steps 2 and 3 is to unpack it in vendor/plugins and delete
-its Gemfile.
+If you are unpacking the gem in vendor/plugins, this step is not needed
+(though you'll then want to delete its Gemfile to avoid possible conflicts).
 
 == Usage
+
+=== Models
  
 Declare triggers in your models and use a rake task to auto-generate the
 appropriate migration. For example:
@@ -33,34 +42,69 @@ and then:
  rake db:generate_trigger_migration
 
 This will create a db-agnostic migration for the trigger that mirrors the
-model declaration. You can also manage triggers manually in your migrations
-(via create_trigger/drop_trigger), though that ends up being more work.
+model declaration. The end result in MySQL will be something like this:
 
-Note that these auto-generated create_trigger statements contain the
-":generated => true" option, indicating that they were created from the
-model definition. This is important, as the rake task will also generate
-appropriate drop/create statements for any model triggers that get removed
-or updated. It does this by diffing the current model trigger declarations
-and any auto-generated triggers from previous migrations.
+ CREATE TRIGGER account_users_after_insert_row_tr AFTER INSERT ON account_users
+ FOR EACH ROW
+ BEGIN
+     UPDATE accounts SET user_count = user_count + 1 WHERE id = NEW.account_id;
+ END
 
-== Chainable Methods
+Note that these auto-generated create_trigger statements in the migration
+contain the ":generated => true" option, indicating that they were created
+from the model definition. This is important, as the rake task will also
+generate appropriate drop/create statements for any model triggers that get
+removed or updated. It does this by diffing the current model trigger
+declarations and any auto-generated triggers from previous migrations.
+
+=== Manual Migrations
+
+You can also manage triggers manually in your migrations via create_trigger and
+drop_trigger. They are a little more verbose than model triggers, and they can
+be more work since you need to figure out the up/down create/drop logic when
+you change things. An sample trigger:
+
+ create_trigger.on(:users).after(:insert) do
+   "UPDATE accounts SET user_count = user_count + 1 WHERE id = NEW.account_id;"
+ end
+
+=== Chainable Methods
 
 Triggers are built by chaining several methods together, ending in a block
 that specifies the SQL to be run when the trigger fires. Supported methods
 include:
 
-* name(trigger_name): Optional, inferred from other calls.
-* on(table_name): Ignored in models, required in migrations.
-* for_each(item): Defaults to :row, PostgreSQL/MySQL allow :statement.
-* before(*events): Shorthand for timing(:before).events(*events).
-* after(*events): Shorthand for timing(:after).events(*events).
-* where(conditions): Optional, limits when the trigger will fire.
-* security(user): Permissions/role to check when calling trigger. PostgreSQL supports :invoker (default) and :definer, MySQL supports :definer (default) and arbitrary users (syntax: 'user'@'host').
-* timing(timing): Required (but may be satisified by before/after). Possible values are :before/:after.
-* events(*events): Required (but may be satisified by before/after). MySQL/SQLite only support one action.
-* all: Noop, useful for trigger groups (see below).
+==== name(trigger_name)
+Optional, inferred from other calls.
 
-== Trigger Groups
+==== on(table_name)
+Ignored in models, required in migrations.
+
+==== for_each(item)
+Defaults to :row, PostgreSQL/MySQL allow :statement.
+
+==== before(*events)
+Shorthand for timing(:before).events(*events).
+
+==== after(*events)
+Shorthand for timing(:after).events(*events).
+
+==== where(conditions)
+Optional, SQL snippet limiting when the trigger will fire. Supports delayed interpolation of variables.
+
+==== security(user)
+Permissions/role to check when calling trigger. PostgreSQL supports :invoker (default) and :definer, MySQL supports :definer (default) and arbitrary users (syntax: 'user'@'host').
+
+==== timing(timing)
+Required (but may be satisified by before/after). Possible values are :before/:after.
+
+==== events(*events)
+Required (but may be satisified by before/after). Possible values are :insert/:update/:delete. MySQL/SQLite only support one action.
+
+==== all
+Noop, useful for trigger groups (see below).
+
+=== Trigger Groups
 
 Trigger groups allow you to use a slightly more concise notation if you have
 several triggers that fire on a given model. This is also important for MySQL,
@@ -96,10 +140,27 @@ create.
 
 == Warnings and Errors
 
-If you try something your adapter doesn't support (e.g. multiple triggering
-events for MySQL), you will get an error. If your adapter does support it, you
-will just get a warning to let you know your trigger is not portable. You can
-silence warnings via `HairTrigger::Builder.show_warnings = false`
+There are a couple classes of errors: declaration errors and generation 
+errors/warnings.
+
+Declaration errors happen if your trigger declaration is obviously wrong, and
+will cause a runtime error in your model or migration class. An example would
+be "trigger.after(:never)", since :never is not a valid event.
+
+Generation errors happen if you try something that your adapter doesn't
+support. An example would be something like "trigger.security(:invoker)" for
+MySQL. These errors only happen when the trigger is actually generated, e.g.
+when you attempt to run the migration.
+
+Generation warnings are similar but they don't stop the trigger from being
+generated. If you do something adapter-specific supported by your database,
+you will still get a warning that your trigger is not portable. You can
+silence warnings via "HairTrigger::Builder.show_warnings = false"
+
+You can validate your triggers beforehand using the Builder#validate! method.
+It will throw the approriate errors/warnings so that you know what to fix, e.g.
+
+ > User.triggers.each(&:validate!)
 
 HairTrigger does not validate your SQL, so be sure to test it in all database
 you want to support.
