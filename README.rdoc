@@ -188,8 +188,8 @@ you want to support.
 
 * Rails 2.3.x
 * Postgres 8.0+
-* MySQL 5.0+
-* SQLite 3.0+
+* MySQL 5.0.10+
+* SQLite 3.3.8+
 
 == Version History
 
