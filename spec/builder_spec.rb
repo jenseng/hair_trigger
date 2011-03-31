@@ -1,5 +1,5 @@
 require 'rspec'
-require File.expand_path(File.dirname(__FILE__) + '/../lib/hair_trigger/builder.rb')
+require 'hair_trigger/builder'
 
 HairTrigger::Builder.show_warnings = false
 
@@ -83,6 +83,12 @@ describe "builder" do
     it "should reject :invoker security" do
       lambda {
         builder.on(:foos).after(:update).security(:invoker){ "FOO" }.generate
+      }.should raise_error
+    end
+
+    it "should reject for_each :statement" do
+      lambda {
+        builder.on(:foos).after(:update).for_each(:statement){ "FOO" }.generate
       }.should raise_error
     end
 

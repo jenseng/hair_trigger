@@ -4,7 +4,7 @@ HairTrigger lets you create and manage database triggers in a concise,
 db-agnostic, Rails-y way. You declare triggers right in your models in Ruby,
 and a simple rake task does all the dirty work for you.
 
-== Install
+== Installation
 
 === Step 1.
 
@@ -55,7 +55,8 @@ contain the ":generated => true" option, indicating that they were created
 from the model definition. This is important, as the rake task will also
 generate appropriate drop/create statements for any model triggers that get
 removed or updated. It does this by diffing the current model trigger
-declarations and any auto-generated triggers from previous migrations.
+declarations and any auto-generated triggers in schema.rb (and subsequent
+migrations).
 
 === Manual Migrations
 
@@ -81,7 +82,7 @@ Optional, inferred from other calls.
 Ignored in models, required in migrations.
 
 ==== for_each(item)
-Defaults to :row, PostgreSQL/MySQL allow :statement.
+Defaults to :row, PostgreSQL allows :statement.
 
 ==== before(*events)
 Shorthand for timing(:before).events(*events).
@@ -128,10 +129,28 @@ For MySQL, this will just create a single trigger with conditional logic
 distinct triggers. This same notation is also used within trigger migrations.
 MySQL does not currently support nested trigger groups.
 
+== rake db:schema:dump
+
+HairTrigger hooks into rake db:schema:dump (and rake tasks that call it) to
+make it trigger-aware. A newly generated schema.rb will contain:
+
+* create_trigger statements for any database triggers that exactly match a
+  create_trigger statement in an applied migration or in the previous
+  schema.rb file. this includes both generated and manual create_trigger
+  calls.
+* adapter-specific execute('CREATE TRIGGER..') statements for any unmatched
+  database triggers.
+
+As long as you don't delete old migrations and schema.rb prior to running
+rake db:schema:dump, the result should be what you expect (and portable).
+If you have deleted all trigger migrations, you can regenerate a new
+baseline for model triggers via rake db:generate_trigger_migration.
+
 == Testing
 
 To stay on top of things, it's strongly recommended that you add a test or
-spec to ensure your migrations match your models. This is as simple as:
+spec to ensure your migrations/schema.rb match your models. This is as simple
+as:
 
  assert HairTrigger::migrations_current?
 
@@ -166,10 +185,8 @@ e.g.
 HairTrigger does not validate your SQL, so be sure to test it in all databases
 you want to support.
 
-== Gotchas, Known Issues
+== Gotchas
 
-* HairTrigger does not check config.active_record.timestamped_migrations, it
-  always assumes it is true. As a workaround, you can rename the migration.
 * As is the case with ActiveRecord::Base.update_all or any direct SQL you do,
   be careful to reload updated objects from the database. For example, the
   following code will display the wrong count since we aren't reloading the

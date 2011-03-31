@@ -50,7 +50,7 @@ module HairTrigger
     end
 
     def for_each(for_each)
-      @errors << ["sqlite doesn't support FOR EACH STATEMENT triggers", :sqlite] if for_each == :statement
+      @errors << ["sqlite and mysql don't support FOR EACH STATEMENT triggers", :sqlite, :mysql] if for_each == :statement
       raise DeclarationError, "invalid for_each" unless [:row, :statement].include?(for_each)
       options[:for_each] = for_each.to_s.upcase
     end
@@ -170,8 +170,8 @@ module HairTrigger
         raise GenerationError, "need to specify the event(s) (:insert, :update, :delete)" if !options[:events] || options[:events].empty?
         raise GenerationError, "need to specify the timing (:before/:after)" unless options[:timing]
 
-        ret = [generate_drop_trigger]
-        ret << case adapter_name
+        [generate_drop_trigger] +
+        [case adapter_name
           when :sqlite
             generate_trigger_sqlite
           when :mysql
@@ -180,23 +180,23 @@ module HairTrigger
             generate_trigger_postgresql
           else
             raise GenerationError, "don't know how to build #{adapter_name} triggers yet"
-        end
-        ret
+        end].flatten
       end
     end
 
-    def to_ruby(indent = '')
+    def to_ruby(indent = '', always_generated = true)
       prepare!
       if options[:drop]
-        "#{indent}drop_trigger(#{prepared_name.inspect}, #{options[:table].inspect}, :generated => true)"
+        "#{indent}drop_trigger(#{prepared_name.inspect}, #{options[:table].inspect})"
       else
         if @trigger_group
           str = "t." + chained_calls_to_ruby + " do\n"
           str << actions_to_ruby("#{indent}  ") + "\n"
           str << "#{indent}end"
         else
-          str = "#{indent}create_trigger(#{prepared_name.inspect}, :generated => true, :compatibility => #{@compatibility}).\n" +
-          "#{indent}    " + chained_calls_to_ruby(".\n#{indent}    ")
+          str = "#{indent}create_trigger(#{prepared_name.inspect}"
+          str << ", :generated => true, :compatibility => #{@compatibility}" if always_generated || options[:generated]
+          str << ").\n#{indent}    " + chained_calls_to_ruby(".\n#{indent}    ")
           if @triggers
             str << " do |t|\n"
             str << "#{indent}  " + @triggers.map{ |t| t.to_ruby("#{indent}  ") }.join("\n\n#{indent}  ") + "\n"
@@ -337,6 +337,8 @@ BEGIN
       sql << <<-SQL
 END;
 $$ LANGUAGE plpgsql#{security ? " SECURITY #{security.to_s.upcase}" : ""};
+      SQL
+      [sql, <<-SQL]
 CREATE TRIGGER #{prepared_name} #{options[:timing]} #{options[:events].join(" OR ")} ON #{options[:table]}
 FOR EACH #{options[:for_each]}#{prepared_where && db_version >= 90000 ? " WHEN (" + prepared_where + ')': ''} EXECUTE PROCEDURE #{prepared_name}();
       SQL

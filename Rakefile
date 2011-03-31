@@ -19,7 +19,7 @@ Jeweler::Tasks.new do |gem|
   gem.description = %Q{allows you to declare database triggers in ruby in your models, and then generate appropriate migrations as they change}
   gem.email = "jenseng@gmail.com"
   gem.authors = ["Jon Jensen"]
-  gem.add_runtime_dependency "activerecord", ">=2.3.0", "<3.0"
+  gem.add_dependency "activerecord", ">=2.3.0", "<3.0"
   gem.add_development_dependency "rspec", "~> 2.3.0"
 end
 Jeweler::RubygemsDotOrgTasks.new
