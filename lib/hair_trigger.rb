@@ -13,9 +13,9 @@ module HairTrigger
     Dir[model_path + '/*rb'].each do |model|
       class_name = model.sub(/\A.*\/(.*?)\.rb\z/, '\1').camelize
       begin
-        require model
+        require model unless klass = Kernel.const_get(class_name) rescue nil
         klass = Kernel.const_get(class_name)
-      rescue LoadError
+      rescue StandardError, LoadError
         raise "unable to load #{class_name} and its trigger(s)" if File.read(model) =~ /^\s*trigger[\.\(]/
         next
       end
