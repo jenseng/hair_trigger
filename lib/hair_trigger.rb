@@ -140,7 +140,7 @@ module HairTrigger
       migration_name = "#{migration_base_name}#{name_version}"
       migration_version = ActiveRecord::Base.timestamped_migrations ?
         Time.now.getutc.strftime("%Y%m%d%H%M%S") :
-        Dir.glob(migration_path + '/*rb').map{ |f| f.gsub(/.*\/(\d+)_.*/, '\1').to_i}.inject(0){ |curr, i| i > curr ? i : curr }
+        Dir.glob(migration_path + '/*rb').map{ |f| f.gsub(/.*\/(\d+)_.*/, '\1').to_i}.inject(0){ |curr, i| i > curr ? i : curr } + 1
       file_name = migration_path + '/' + migration_version + "_" + migration_name.underscore + ".rb"
       File.open(file_name, "w"){ |f| f.write <<-MIGRATION }
 # This migration was auto-generated via `rake db:generate_trigger_migration'.
