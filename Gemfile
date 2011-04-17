@@ -1,6 +1,5 @@
 source "http://rubygems.org"
 
-#gem "activerecord", ">=2.3.0", "<3.0"
 gem "activerecord", ">=2.3.0"
 group :development do
   gem "rspec", "~> 2.3.0"

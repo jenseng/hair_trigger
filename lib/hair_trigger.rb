@@ -1,6 +1,7 @@
 require 'ostruct'
 require 'hair_trigger/base'
 require 'hair_trigger/builder'
+require 'hair_trigger/migrator'
 require 'hair_trigger/migration'
 require 'hair_trigger/adapter'
 require 'hair_trigger/schema_dumper'
@@ -185,6 +186,7 @@ end
 ActiveRecord::Base.send :extend, HairTrigger::Base
 ActiveRecord::Migration.send :extend, HairTrigger::Migration
 ActiveRecord::MigrationProxy.send :delegate, :trigger_builders, :to=>:migration
+ActiveRecord::Migrator.send :extend, HairTrigger::Migrator
 ActiveRecord::ConnectionAdapters::AbstractAdapter.class_eval { include HairTrigger::Adapter }
 ActiveRecord::SchemaDumper.class_eval { include HairTrigger::SchemaDumper }
 ActiveRecord::Schema.send :extend, HairTrigger::Schema

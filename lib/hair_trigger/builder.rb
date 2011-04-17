@@ -195,7 +195,8 @@ module HairTrigger
           str << "#{indent}end"
         else
           str = "#{indent}create_trigger(#{prepared_name.inspect}"
-          str << ", :generated => true, :compatibility => #{@compatibility}" if always_generated || options[:generated]
+          str << ", :generated => true" if always_generated || options[:generated]
+          str << ", :compatibility => #{@compatibility}"
           str << ").\n#{indent}    " + chained_calls_to_ruby(".\n#{indent}    ")
           if @triggers
             str << " do |t|\n"
@@ -387,8 +388,7 @@ BEGIN
     end
 
     class << self
-      attr_writer :tab_spacing
-      attr_writer :show_warnings
+      attr_writer :tab_spacing, :show_warnings, :base_compatibility
 
       def tab_spacing
         @tab_spacing ||= 4
@@ -397,6 +397,10 @@ BEGIN
       def show_warnings
         @show_warnings = true if @show_warnings.nil?
         @show_warnings
+      end
+
+      def base_compatibility
+        @base_compatibility ||= 0
       end
 
       def compatibility

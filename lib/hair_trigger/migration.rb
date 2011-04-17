@@ -4,17 +4,20 @@ module HairTrigger
 
     def method_missing_with_trigger_building(method, *arguments, &block)
       if extract_trigger_builders
-        if method.to_sym == :create_trigger && (extract_all_triggers || arguments[1].delete(:generated))
+        extract_this_trigger = extract_all_triggers
+        trigger = if method.to_sym == :create_trigger
+          arguments.unshift({}) if arguments.empty?
           arguments.unshift(nil) if arguments.first.is_a?(Hash)
-          arguments[1][:compatibility] ||= 0
-          trigger = ::HairTrigger::Builder.new(*arguments)
-          (@trigger_builders ||= []) << trigger
-          trigger
-        elsif method.to_sym == :drop_trigger && (extract_all_triggers || arguments[2] && arguments[2].delete(:generated))
-          trigger = ::HairTrigger::Builder.new(arguments[0], {:table => arguments[1], :drop => true})
-          (@trigger_builders ||= []) << trigger
-          trigger
+          extract_this_trigger ||= arguments[1].delete(:generated)
+          arguments[1][:compatibility] ||= HairTrigger::Builder.base_compatibility
+          ::HairTrigger::Builder.new(*arguments)
+        elsif method.to_sym == :drop_trigger
+          extract_this_trigger ||= arguments[2].delete(:generated) if arguments[2]
+          ::HairTrigger::Builder.new(arguments[0], {:table => arguments[1], :drop => true})
         end
+        (@trigger_builders ||= []) << trigger if trigger && extract_this_trigger
+        trigger
+
         # normally we would fall through to the connection for everything
         # else, but we don't want to do that since we are not actually
         # running the migration

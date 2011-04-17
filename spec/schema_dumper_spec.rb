@@ -60,6 +60,7 @@ describe "schema" do
       io.rewind
       schema_rb = io.read
       schema_rb.should match(/create_trigger\("users_after_insert_row_when_new_name_bob__tr", :generated => true, :compatibility => 1\)/)
+      schema_rb.should match(/create_trigger\("users_after_update_row_when_new_name_joe__tr", :compatibility => 1\)/)
 
       # schema dump w/ schema.rb
       ActiveRecord::SchemaDumper.previous_schema = schema_rb

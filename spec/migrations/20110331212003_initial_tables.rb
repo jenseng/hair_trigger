@@ -7,6 +7,7 @@ class InitialTables < ActiveRecord::Migration
 
     create_table "groups" do |t|
       t.integer  "bob_count", :default => 0
+      t.integer  "updated_joe_count", :default => 0
     end
   end
 

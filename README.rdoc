@@ -15,11 +15,13 @@ hairtrigger in environment.rb
 
 === Step 2.
 
-If you plan to use model triggers (which you should ;) you'll need to create
-lib/tasks/hair_trigger.rake with the following:
+Create lib/tasks/hair_trigger.rake with the following:
 
  $VERBOSE = nil
  Dir["#{Gem.searcher.find('hair_trigger').full_gem_path}/lib/tasks/*.rake"].each { |ext| load ext }
+
+This will give you the db:generate_trigger_migration task, and will ensure
+that hairtrigger hooks into db:schema:dump.
 
 If you are unpacking the gem in vendor/plugins, this step is not needed
 (though you'll then want to delete its Gemfile to avoid possible conflicts).
@@ -65,9 +67,30 @@ drop_trigger. They are a little more verbose than model triggers, and they can
 be more work since you need to figure out the up/down create/drop logic when
 you change things. A sample trigger:
 
- create_trigger.on(:users).after(:insert) do
+ create_trigger(:compatibility => 1).on(:users).after(:insert) do
    "UPDATE accounts SET user_count = user_count + 1 WHERE id = NEW.account_id;"
  end
+
+==== Manual triggers and :compatibility
+
+As bugs are fixed and features are implemented in hairtrigger, it's possible
+that the generated trigger SQL will change (this has only happened once so
+far). If you upgrade to a newer version of hairtrigger, it needs a way of
+knowing which previous version generated the original trigger. You only need
+to worry about this for manual trigger migrations, as the model ones
+automatically take care of this. For your manual triggers you can either:
+
+* pass ":compatibility => x" to your create_trigger statement, where x is
+  whatever HairTrigger::Builder.compatiblity is (1 for this version).
+* set "HairTrigger::Builder.base_compatibility = x" in an initializer, where
+  x is whatever HairTrigger::Builder.compatiblity is. This is like doing the
+  first option on every create_trigger. Note that once the compatibility
+  changes, you'll need to set :compatibility on new triggers (unless you
+  just redo all your triggers and bump the base_compatibility).
+
+If you upgrade to a newer version of hairtrigger and see that the SQL
+compatibility has changed, you'll need to set the appropriate compatibility
+on any new triggers that you create.
 
 === Chainable Methods
 
@@ -200,6 +223,8 @@ you want to support.
   limited to INSERT/UPDATE/DELETE/SELECT, and conditional logic should be
   handled through the :where option/method. Otherwise you'll likely run into
   trouble due to differences in syntax and supported features.
+* Manual create_trigger statements have some gotchas. See the section
+  "Manual triggers and :compatibility"
 
 == Compatibility
 
@@ -210,6 +235,8 @@ you want to support.
 
 == Version History
 
+* 0.1.7 Rails 3 support, fixed a couple manual create_trigger bugs
+* 0.1.6 rake db:schema:dump support, respect non-timestamped migrations
 * 0.1.4 Compatibility tracking, fixed Postgres return bug, ensure last action
   has a semicolon
 * 0.1.3 Better error handling, Postgres 8.x support, updated docs
