@@ -1,7 +1,9 @@
 require 'active_record'
+require 'logger'
 require 'active_record/connection_adapters/postgresql_adapter'
 require 'active_record/connection_adapters/mysql_adapter'
 require 'active_record/connection_adapters/sqlite3_adapter'
+require 'mysql2'
 require 'rspec'
 require 'hair_trigger'
 
@@ -25,7 +27,7 @@ def initialize_db(adapter)
   reset_tmp
   config = {:database => 'hairtrigger_schema_test', :username => 'hairtrigger', :adapter => adapter.to_s, :host => 'localhost'}
   case adapter
-    when :mysql
+    when :mysql, :mysql2
       ret = `echo "drop database if exists hairtrigger_schema_test; create database hairtrigger_schema_test;" | mysql hairtrigger_schema_test -u hairtrigger`
       raise "error creating database: #{ret}" unless $?.exitstatus == 0
     when :sqlite3
@@ -36,13 +38,16 @@ def initialize_db(adapter)
       raise "error creating database: #{ret}" unless $?.exitstatus == 0
       config[:min_messages] = :error
   end
+  # Arel has an issue in that it keeps using original connection for quoting,
+  # etc. (which breaks stuff) unless you do this:
+  Arel::Visitors::ENGINE_VISITORS.delete(ActiveRecord::Base) if defined?(Arel)
   ActiveRecord::Base.establish_connection(config)
   ActiveRecord::Base.logger = Logger.new('/dev/null')
   ActiveRecord::Migrator.migrate(HairTrigger.migration_path)
 end
 
 describe "schema" do
-  [:mysql, :postgresql, :sqlite3].each do |adapter|
+  [:mysql, :mysql2, :postgresql, :sqlite3].each do |adapter|
     it "should correctly dump #{adapter}" do
       ActiveRecord::Migration.verbose = false
       initialize_db(adapter)

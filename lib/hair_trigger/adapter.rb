@@ -15,7 +15,8 @@ module HairTrigger
     def triggers(options = {})
       triggers = {}
       name_clause = options[:only] ? "IN ('" + options[:only].join("', '") + "')" : nil
-      case self.adapter_name.downcase.to_sym
+      adapter_name = HairTrigger.adapter_name_for(self)
+      case adapter_name
         when :sqlite
           select_rows("SELECT name, sql FROM sqlite_master WHERE type = 'trigger' #{name_clause ? " AND name " + name_clause : ""}").each do |(name, definition)|
             triggers[name] = definition + ";\n"

@@ -203,7 +203,7 @@ you want to support.
 
 == Compatibility
 
-* Rails 2.3.x
+* Rails 2.3+
 * Postgres 8.0+
 * MySQL 5.0.10+
 * SQLite 3.3.8+

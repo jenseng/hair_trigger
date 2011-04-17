@@ -270,7 +270,7 @@ module HairTrigger
     end
 
     def adapter_name
-      @adapter_name ||= adapter.adapter_name.downcase.to_sym
+      @adapter_name ||= HairTrigger.adapter_name_for(adapter)
     end
 
     def adapter

@@ -175,6 +175,10 @@ end
     def migration_path
       @migration_path ||= 'db/migrate'
     end
+
+    def adapter_name_for(adapter)
+      adapter.adapter_name.downcase.sub(/\d$/, '').to_sym
+    end
   end
 end
 
