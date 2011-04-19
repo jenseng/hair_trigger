@@ -25,7 +25,7 @@ module HairTrigger
           select_rows("SHOW TRIGGERS").each do |(name, event, table, actions, timing, created, sql_mode, definer)|
             next if options[:only] && !options[:only].include?(name)
             triggers[name] = <<-SQL
-CREATE #{definer != "#{@config[:username]}@#{@config[:host]}" ? "DEFINER = #{definer} " : ""}TRIGGER #{name} #{timing} #{event} ON #{table}
+CREATE #{definer != "#{@config[:username] || 'root'}@#{@config[:host]}" ? "DEFINER = #{definer} " : ""}TRIGGER #{name} #{timing} #{event} ON #{table}
 FOR EACH ROW
 #{actions}
             SQL
