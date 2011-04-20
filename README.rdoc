@@ -235,6 +235,7 @@ you want to support.
 
 == Version History
 
+* 0.1.9 mysql fixes for inferred root@localhost
 * 0.1.7 Rails 3 support, fixed a couple manual create_trigger bugs
 * 0.1.6 rake db:schema:dump support, respect non-timestamped migrations
 * 0.1.4 Compatibility tracking, fixed Postgres return bug, ensure last action
