@@ -48,6 +48,7 @@ module HairTrigger
     migrator = ActiveRecord::Migrator.new(:up, migration_path)
     migrated = migrator.migrated rescue []
     migrations = migrator.migrations.select{ |migration|
+      File.read(migration.filename) =~ /(create|drop)_trigger/ &&
       (options[:skip_pending_migrations] ? migrated.include?(migration.version) : true)
     }.each{ |migration|
       migration.migrate(:up)
