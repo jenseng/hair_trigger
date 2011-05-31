@@ -1,11 +1,10 @@
 require 'ostruct'
 require 'hair_trigger/base'
 require 'hair_trigger/builder'
+require 'hair_trigger/migration_reader'
 require 'hair_trigger/migrator'
-require 'hair_trigger/migration'
 require 'hair_trigger/adapter'
 require 'hair_trigger/schema_dumper'
-require 'hair_trigger/schema'
 
 module HairTrigger
   def self.current_triggers
@@ -13,12 +12,12 @@ module HairTrigger
     canonical_triggers = []
     Dir[model_path + '/*rb'].each do |model|
       class_name = model.sub(/\A.*\/(.*?)\.rb\z/, '\1').camelize
+      next unless File.read(model) =~ /^\s*trigger[\.\(]/
       begin
         require model unless klass = Kernel.const_get(class_name) rescue nil
         klass = Kernel.const_get(class_name)
       rescue StandardError, LoadError
         raise "unable to load #{class_name} and its trigger(s)" if File.read(model) =~ /^\s*trigger[\.\(]/
-        next
       end
       canonical_triggers += klass.triggers if klass < ActiveRecord::Base && klass.triggers
     end
@@ -32,11 +31,6 @@ module HairTrigger
       options[:skip_pending_migrations] = true
     end
 
-    prev_verbose = ActiveRecord::Migration.verbose
-    ActiveRecord::Migration.verbose = false
-    ActiveRecord::Migration.extract_trigger_builders = true
-    ActiveRecord::Migration.extract_all_triggers = options[:include_manual_triggers] || false
-    
     # if we're in a db:schema:dump task (explict or kicked off by db:migrate),
     # we evaluate the previous schema.rb (if it exists), and then all applied
     # migrations in order (even ones older than schema.rb). this ensures we
@@ -47,27 +41,26 @@ module HairTrigger
     # evaluate all migrations along with schema.rb, ordered by version
     migrator = ActiveRecord::Migrator.new(:up, migration_path)
     migrated = migrator.migrated rescue []
-    migrations = migrator.migrations.select{ |migration|
-      File.read(migration.filename) =~ /(create|drop)_trigger/ &&
-      (options[:skip_pending_migrations] ? migrated.include?(migration.version) : true)
-    }.each{ |migration|
-      migration.migrate(:up)
-    }
+    migrations = []
+    migrator.migrations.each do |migration|
+      next if options[:skip_pending_migrations] && !migrated.include?(migration.version)
+      triggers = MigrationReader.get_triggers(migration, options)
+      migrations << [migration, triggers] unless triggers.empty?
+    end
 
-    if options.has_key?(:previous_schema)
-      eval(options[:previous_schema]) if options[:previous_schema]
-    elsif File.exist?(schema_rb_path)
-      load(schema_rb_path)
+    if previous_schema = (options.has_key?(:previous_schema) ? options[:previous_schema] : File.exist?(schema_rb_path) && File.read(schema_rb_path))
+      base_triggers = MigrationReader.get_triggers(previous_schema, options)
+      unless base_triggers.empty?
+        version = (previous_schema =~ /ActiveRecord::Schema\.define\(:version => (\d+)\)/) && $1.to_i
+        migrations.unshift [OpenStruct.new({:version => version}), base_triggers]
+      end
     end
-    if ActiveRecord::Schema.info && ActiveRecord::Schema.trigger_builders
-      migrations.unshift OpenStruct.new({:version => ActiveRecord::Schema.info[:version], :trigger_builders => ActiveRecord::Schema.trigger_builders})
-    end
-    migrations = migrations.sort_by(&:version) unless options[:schema_rb_first]
+    
+    migrations = migrations.sort_by{|(migration, triggers)| migration.version} unless options[:schema_rb_first]
 
     all_builders = []
-    migrations.each do |migration|
-      next unless migration.trigger_builders
-      migration.trigger_builders.each do |new_trigger|
+    migrations.each do |(migration, triggers)|
+      triggers.each do |new_trigger|
         # if there is already a trigger with this name, delete it since we are
         # either dropping it or replacing it
         new_trigger.prepare!
@@ -77,11 +70,6 @@ module HairTrigger
     end
 
     all_builders
-
-  ensure
-    ActiveRecord::Migration.verbose = prev_verbose
-    ActiveRecord::Migration.extract_trigger_builders = false
-    ActiveRecord::Migration.extract_all_triggers = false
   end
 
   def self.migrations_current?
@@ -185,9 +173,6 @@ end
 end
 
 ActiveRecord::Base.send :extend, HairTrigger::Base
-ActiveRecord::Migration.send :extend, HairTrigger::Migration
-ActiveRecord::MigrationProxy.send :delegate, :trigger_builders, :to=>:migration
 ActiveRecord::Migrator.send :extend, HairTrigger::Migrator
 ActiveRecord::ConnectionAdapters::AbstractAdapter.class_eval { include HairTrigger::Adapter }
 ActiveRecord::SchemaDumper.class_eval { include HairTrigger::SchemaDumper }
-ActiveRecord::Schema.send :extend, HairTrigger::Schema

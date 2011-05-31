@@ -212,17 +212,25 @@ module HairTrigger
 
     def <=>(other)
       ret = prepared_name <=> other.prepared_name
-      ret == 0 ? hash <=> other.hash : ret
+      return ret unless ret == 0
+      hash <=> other.hash
+    end
+
+    def ==(other)
+      components == other.components
     end
 
     def eql?(other)
-      return false unless other.is_a?(HairTrigger::Builder)
-      hash == other.hash
+      other.is_a?(HairTrigger::Builder) && self == other
     end
 
     def hash
       prepare!
-      [self.options.hash, self.prepared_actions.hash, self.prepared_where.hash, self.triggers.hash, @compatibility].hash
+      components.hash
+    end
+
+    def components
+      [self.options, self.prepared_actions, self.prepared_where, self.triggers, @compatibility]
     end
 
     def errors

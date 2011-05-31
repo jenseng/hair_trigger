@@ -77,6 +77,7 @@ describe "schema" do
       }
       migration = HairTrigger.generate_migration
       ActiveRecord::Migrator.migrate(HairTrigger.migration_path)
+      HairTrigger.should be_migrations_current
       ActiveRecord::Base.connection.triggers.values.grep(/bob_count \+ 1/).size.should eql(0)
       ActiveRecord::Base.connection.triggers.values.grep(/bob_count \+ 2/).size.should eql(1)
       
@@ -100,6 +101,24 @@ describe "schema" do
       schema_rb4.should_not eql(schema_rb3)
       schema_rb4.should eql(schema_rb2)
       ActiveRecord::Base.connection.triggers.values.grep(/bob_count \+ 1/).size.should eql(1)
+
+      # delete our migrations, it should still dump correctly
+      FileUtils.rm_rf(Dir.glob('tmp/migrations/*rb'))
+      ActiveRecord::SchemaDumper.previous_schema = schema_rb4
+      io = StringIO.new
+      ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, io)
+      io.rewind
+      schema_rb5 = io.read
+      schema_rb5.should eql(schema_rb4)
+
+      # "delete" schema.rb too, now it should have adapter-specific triggers
+      ActiveRecord::SchemaDumper.previous_schema = nil
+      io = StringIO.new
+      ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, io)
+      io.rewind
+      schema_rb6 = io.read
+      schema_rb6.should_not match(/create_trigger\(/)
+      schema_rb6.should match(/no candidate create_trigger statement could be found, creating an adapter-specific one/)
     end
   end
 end
