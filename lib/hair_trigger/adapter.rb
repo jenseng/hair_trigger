@@ -5,11 +5,11 @@ module HairTrigger
         options = name
         name = nil
       end
-      ::HairTrigger::Builder.new(name, options.merge(:execute => true))
+      ::HairTrigger::Builder.new(name, options.merge(:execute => true, :adapter => self))
     end
 
     def drop_trigger(name, table, options = {})
-      ::HairTrigger::Builder.new(name, options.merge(:execute => true, :drop => true, :table => table)){}
+      ::HairTrigger::Builder.new(name, options.merge(:execute => true, :drop => true, :table => table, :adapter => self)){}
     end
 
     def triggers(options = {})
