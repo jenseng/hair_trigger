@@ -73,7 +73,7 @@ describe "schema" do
       # edit our model trigger, generate and apply a new migration
       user_model = File.read(HairTrigger.model_path + '/user.rb')
       File.open(HairTrigger.model_path + '/user.rb', 'w') { |f|
-        f.write user_model.sub('UPDATE groups SET bob_count = bob_count + 1', 'UPDATE groups SET bob_count = bob_count + 2')
+        f.write user_model.sub('"UPDATE groups SET bob_count = bob_count + 1"', '{:default => "UPDATE groups SET bob_count = bob_count + 2"}')
       }
       migration = HairTrigger.generate_migration
       ActiveRecord::Migrator.migrate(HairTrigger.migration_path)

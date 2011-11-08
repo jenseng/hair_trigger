@@ -152,6 +152,29 @@ For MySQL, this will just create a single trigger with conditional logic
 distinct triggers. This same notation is also used within trigger migrations.
 MySQL does not currently support nested trigger groups.
 
+=== Database-specific trigger bodies ===
+
+Although HairTrigger aims to be totally db-agnostic, at times you do need a
+little more control over the body of the trigger. You can tailor it for
+specific databses by returning a hash rather than a string. Make sure to set
+a :default value if you aren't explicitly specifying all of them.
+
+For example, MySQL generally performs poorly with subselects in UPDATE
+statements, and it has its own proprietary syntax for multi-table UPDATEs. So
+you might do something like the following:
+
+  trigger.after(:insert) do
+    {:default => <<-DEFAULT_SQL, :mysql => <<-MYSQL}
+
+    UPDATE users SET item_count = item_count + 1
+    WHERE id IN (SELECT user_id FROM buckets WHERE id = NEW.bucket_id)
+    DEFAULT_SQL
+
+    UPDATE users, buckets SET item_count = item_count + 1
+    WHERE users.id = user_id AND buckets.id = NEW.bucket_id
+    MYSQL
+  end
+
 == rake db:schema:dump
 
 HairTrigger hooks into rake db:schema:dump (and rake tasks that call it) to
@@ -228,14 +251,16 @@ you want to support.
 
 == Compatibility
 
-* Rails 2.3+
+* Rails 2.3 - Rails 3.0.x
 * Postgres 8.0+
 * MySQL 5.0.10+
 * SQLite 3.3.8+
 
 == Version History
 
-* 0.1.9 mysql fixes for inferred root@localhost
+* 0.1.11 Safer migration loading, some speedups
+* 0.1.10 Sped up migration evaluation
+* 0.1.9 MySQL fixes for inferred root@localhost
 * 0.1.7 Rails 3 support, fixed a couple manual create_trigger bugs
 * 0.1.6 rake db:schema:dump support, respect non-timestamped migrations
 * 0.1.4 Compatibility tracking, fixed Postgres return bug, ensure last action

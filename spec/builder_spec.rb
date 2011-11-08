@@ -1,5 +1,6 @@
 require 'rspec'
-require 'hair_trigger/builder'
+require 'active_record'
+require 'hair_trigger'
 
 HairTrigger::Builder.show_warnings = false
 
@@ -29,7 +30,7 @@ describe "builder" do
     it "should tack on a semicolon if none is provided" do
       @adapter = MockAdapter.new("mysql")
       builder.on(:foos).after(:update){ "FOO " }.generate.
-      grep(/FOO;/).size.should eql(1)
+        grep(/FOO;/).size.should eql(1)
     end
   end
 
@@ -37,16 +38,44 @@ describe "builder" do
     it "should view identical triggers as identical" do
       @adapter = MockAdapter.new("mysql")
       builder.on(:foos).after(:update){ "FOO" }.
-      should eql(builder.on(:foos).after(:update){ "FOO" })
+        should eql(builder.on(:foos).after(:update){ "FOO" })
     end
 
     it "should view incompatible triggers as different" do
       @adapter = MockAdapter.new("mysql")
       HairTrigger::Builder.new(nil, :adapter => @adapter, :compatibility => 0).on(:foos).after(:update){ "FOO" }.
-      should_not eql(builder.on(:foos).after(:update){ "FOO" })
+        should_not eql(builder.on(:foos).after(:update){ "FOO" })
     end
   end
 
+  context "adapter-specific actions" do
+    before(:each) do
+      @adapter = MockAdapter.new("mysql")
+    end
+
+    it "should generate the appropriate trigger for the adapter" do
+      sql = builder.on(:foos).after(:update).where('BAR'){
+        {:default => "DEFAULT", :mysql => "MYSQL"}
+      }.generate
+
+      sql.grep(/DEFAULT/).size.should eql(0)
+      sql.grep(/MYSQL/).size.should eql(1)
+
+      sql = builder.on(:foos).after(:update).where('BAR'){
+        {:default => "DEFAULT", :postgres => "POSTGRES"}
+      }.generate
+
+      sql.grep(/POSTGRES/).size.should eql(0)
+      sql.grep(/DEFAULT/).size.should eql(1)
+    end
+
+    it "should complain if no actions are provided for this adapter" do
+      lambda {
+        builder.on(:foos).after(:update).where('BAR'){ {:postgres => "POSTGRES"} }.generate
+      }.should raise_error
+    end
+  end
+  
   context "mysql" do
     before(:each) do
       @adapter = MockAdapter.new("mysql")
@@ -156,7 +185,7 @@ describe "builder" do
 
     it "should allow truncate with for_each statement" do
       builder.on(:foos).after(:truncate).for_each(:statement){ "FOO" }.generate.
-      grep(/TRUNCATE.*FOR EACH STATEMENT/m).size.should eql(1)
+        grep(/TRUNCATE.*FOR EACH STATEMENT/m).size.should eql(1)
     end
 
     it "should reject truncate with for_each row" do
@@ -167,7 +196,7 @@ describe "builder" do
 
     it "should add a return statement if none is provided" do
       builder.on(:foos).after(:update){ "FOO" }.generate.
-      grep(/RETURN NULL;/).size.should eql(1)
+        grep(/RETURN NULL;/).size.should eql(1)
     end
 
     context "legacy" do

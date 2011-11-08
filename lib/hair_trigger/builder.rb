@@ -98,6 +98,10 @@ module HairTrigger
       options[:events] = events.map{ |e| e.to_s.upcase }
     end
 
+    def raw_actions
+      @raw_actions ||= prepared_actions.is_a?(Hash) ? prepared_actions[adapter_name] || prepared_actions[:default] : prepared_actions
+    end
+
     def prepared_name
       @prepared_name ||= options[:name] ||= infer_name
     end
@@ -141,7 +145,11 @@ module HairTrigger
     def prepare!
       @triggers.each(&:prepare!) if @triggers
       @prepared_where = options[:where] = interpolate(options[:where]) if options[:where]
-      @prepared_actions = interpolate(@actions).rstrip if @actions
+      if @actions
+        @prepared_actions = @actions.is_a?(Hash) ?
+          @actions.inject({}){ |hash, (key, value)| hash[key] = interpolate(value).rstrip; hash } :
+          interpolate(@actions).rstrip
+      end
     end
 
     def validate!(direction = :down)
@@ -166,7 +174,7 @@ module HairTrigger
       if options[:drop]
         generate_drop_trigger
       else
-        raise GenerationError, "no actions specified" if @triggers && create_grouped_trigger? ? @triggers.any?{ |t| t.prepared_actions.nil? } : prepared_actions.nil?
+        raise GenerationError, "no actions specified" if @triggers && create_grouped_trigger? ? @triggers.any?{ |t| t.raw_actions.nil? } : raw_actions.nil?
         raise GenerationError, "need to specify the event(s) (:insert, :update, :delete)" if !options[:events] || options[:events].empty?
         raise GenerationError, "need to specify the timing (:before/:after)" unless options[:timing]
 
@@ -255,7 +263,7 @@ module HairTrigger
     end
 
     def actions_to_ruby(indent = '')
-      if prepared_actions =~ /\n/
+      if prepared_actions.is_a?(String) && prepared_actions =~ /\n/
         "#{indent}<<-SQL_ACTIONS\n#{prepared_actions}\n#{indent}SQL_ACTIONS"
       else
         indent + prepared_actions.inspect
@@ -271,7 +279,9 @@ module HairTrigger
         raise DeclarationError, "trigger group did not define any triggers" if @triggers.empty?
       else
         @actions = block.call
-        @actions.sub!(/(\s*)\z/, ';\1') if @actions && !(@actions =~ /;\s*\z/)
+        (@actions.is_a?(Hash) ? @actions.values : [@actions]).each do |actions|
+          actions.sub!(/(\s*)\z/, ';\1') if actions && actions !~ /;\s*\z/
+        end
       end
       # only the top-most block actually executes
       Array(generate).each{ |action| adapter.execute(action)} if options[:execute] && !@trigger_group
@@ -312,7 +322,7 @@ module HairTrigger
 CREATE TRIGGER #{prepared_name} #{options[:timing]} #{options[:events]} ON #{options[:table]}
 FOR EACH #{options[:for_each]}#{prepared_where ? " WHEN " + prepared_where : ''}
 BEGIN
-#{normalize(prepared_actions, 1).rstrip}
+#{normalize(raw_actions, 1).rstrip}
 END;
       SQL
     end
@@ -328,13 +338,13 @@ BEGIN
       SQL
       if prepared_where && db_version < 90000
         sql << normalize("IF #{prepared_where} THEN", 1)
-        sql << normalize(prepared_actions, 2)
+        sql << normalize(raw_actions, 2)
         sql << normalize("END IF;", 1)
       else
-        sql << normalize(prepared_actions, 1)
+        sql << normalize(raw_actions, 1)
       end
       # if no return is specified at the end, be sure we set a sane one
-      unless prepared_actions =~ /return [^;]+;\s*\z/i
+      unless raw_actions =~ /return [^;]+;\s*\z/i
         if options[:timing] == "AFTER" || options[:for_each] == 'STATEMENT'
           sql << normalize("RETURN NULL;", 1)
         elsif options[:events].include?('DELETE')
@@ -363,10 +373,10 @@ BEGIN
       (@triggers ? @triggers : [self]).each do |trigger|
         if trigger.prepared_where
           sql << normalize("IF #{trigger.prepared_where} THEN", 1)
-          sql << normalize(trigger.prepared_actions, 2)
+          sql << normalize(trigger.raw_actions, 2)
           sql << normalize("END IF;", 1)
         else
-          sql << normalize(trigger.prepared_actions, 1)
+          sql << normalize(trigger.raw_actions, 1)
         end
       end
       sql << "END\n";
