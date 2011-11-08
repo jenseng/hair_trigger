@@ -9,7 +9,7 @@ module HairTrigger
     end
 
     def drop_trigger(name, table, options = {})
-      ::HairTrigger::Builder.new(name, options.merge(:execute => true, :drop => true, :table => table, :adapter => self)){}
+      ::HairTrigger::Builder.new(name, options.merge(:execute => true, :drop => true, :table => table, :adapter => self)).all{}
     end
 
     def triggers(options = {})
