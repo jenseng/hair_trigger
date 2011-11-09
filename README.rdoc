@@ -152,11 +152,11 @@ For MySQL, this will just create a single trigger with conditional logic
 distinct triggers. This same notation is also used within trigger migrations.
 MySQL does not currently support nested trigger groups.
 
-=== Database-specific trigger bodies ===
+=== Database-specific trigger bodies
 
 Although HairTrigger aims to be totally db-agnostic, at times you do need a
 little more control over the body of the trigger. You can tailor it for
-specific databses by returning a hash rather than a string. Make sure to set
+specific databases by returning a hash rather than a string. Make sure to set
 a :default value if you aren't explicitly specifying all of them.
 
 For example, MySQL generally performs poorly with subselects in UPDATE
@@ -258,6 +258,7 @@ you want to support.
 
 == Version History
 
+* 0.1.12 DB-specific trigger body support, bugfixes
 * 0.1.11 Safer migration loading, some speedups
 * 0.1.10 Sped up migration evaluation
 * 0.1.9 MySQL fixes for inferred root@localhost
