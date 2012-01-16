@@ -53,7 +53,8 @@ module HairTrigger
       end
 
       def generate_drop_trigger(*arguments)
-        ::HairTrigger::Builder.new(arguments[0], {:table => arguments[1], :drop => true})
+        options = arguments[2] || {}
+        ::HairTrigger::Builder.new(arguments[0], options.update({:table => arguments[1], :drop => true}))
       end
 
       def generator

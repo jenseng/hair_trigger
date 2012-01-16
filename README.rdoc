@@ -258,6 +258,7 @@ you want to support.
 
 == Version History
 
+* 0.1.13 drop_trigger fix
 * 0.1.12 DB-specific trigger body support, bugfixes
 * 0.1.11 Safer migration loading, some speedups
 * 0.1.10 Sped up migration evaluation

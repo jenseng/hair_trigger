@@ -195,7 +195,9 @@ module HairTrigger
     def to_ruby(indent = '', always_generated = true)
       prepare!
       if options[:drop]
-        "#{indent}drop_trigger(#{prepared_name.inspect}, #{options[:table].inspect})"
+        str = "#{indent}drop_trigger(#{prepared_name.inspect}, #{options[:table].inspect}"
+        str << ", :generated => true" if always_generated || options[:generated]
+        str << ")"
       else
         if @trigger_group
           str = "t." + chained_calls_to_ruby + " do\n"
