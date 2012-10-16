@@ -321,7 +321,7 @@ module HairTrigger
 
     def generate_trigger_sqlite
       <<-SQL
-CREATE TRIGGER #{prepared_name} #{options[:timing]} #{options[:events]} ON #{options[:table]}
+CREATE TRIGGER #{prepared_name} #{options[:timing]} #{options[:events].first} ON #{options[:table]}
 FOR EACH #{options[:for_each]}#{prepared_where ? " WHEN " + prepared_where : ''}
 BEGIN
 #{normalize(raw_actions, 1).rstrip}
