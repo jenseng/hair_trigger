@@ -5,6 +5,7 @@ require 'hair_trigger/migration_reader'
 require 'hair_trigger/migrator'
 require 'hair_trigger/adapter'
 require 'hair_trigger/schema_dumper'
+require 'hair_trigger/railtie' if defined?(Rails::Railtie)
 
 module HairTrigger
   class << self
@@ -129,17 +130,18 @@ module HairTrigger
       migration_name = infer_migration_name(migration_names, up_create_triggers, up_drop_triggers)
       migration_version = infer_migration_version(migration_name)
       file_name = migration_path + '/' + migration_version + "_" + migration_name.underscore + ".rb"
+      prefix = ActiveRecord::VERSION::STRING < "3.1." ? "self." : ""
       File.open(file_name, "w"){ |f| f.write <<-MIGRATION }
 # This migration was auto-generated via `rake db:generate_trigger_migration'.
 # While you can edit this file, any changes you make to the definitions here
 # will be undone by the next auto-generated trigger migration.
 
 class #{migration_name} < ActiveRecord::Migration
-  def self.up
+  def #{prefix}up
     #{(up_drop_triggers + up_create_triggers).map{ |t| t.to_ruby('    ') }.join("\n\n").lstrip}
   end
 
-  def self.down
+  def #{prefix}down
     #{(down_drop_triggers + down_create_triggers).map{ |t| t.to_ruby('    ') }.join("\n\n").lstrip}
   end
 end

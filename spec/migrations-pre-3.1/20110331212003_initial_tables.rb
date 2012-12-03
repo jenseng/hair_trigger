@@ -1,5 +1,5 @@
 class InitialTables < ActiveRecord::Migration
-  def up
+  def self.up
     create_table "users" do |t|
       t.integer  "group_id"
       t.string   "name"
@@ -11,7 +11,7 @@ class InitialTables < ActiveRecord::Migration
     end
   end
 
-  def down
+  def self.down
     drop_table "users"
     drop_table "groups"
   end

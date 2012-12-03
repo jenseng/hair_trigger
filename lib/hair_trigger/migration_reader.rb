@@ -22,7 +22,7 @@ module HairTrigger
           sexps = sexps.detect{ |s| s.is_a?(Sexp) && s[0] == :class && s[1] == source.name.to_sym }.last
           # find the block of the up method
           sexps = sexps.last if sexps.last.is_a?(Sexp) && sexps.last[0] == :block
-          sexps = sexps.detect{ |s| s.is_a?(Sexp) && s[0] == :defs && s[1] && s[1][0] == :self && s[2] == :up }.last.last
+          sexps = sexps.detect{ |s| s.is_a?(Sexp) && (s[0] == :defs && s[1] && s[1][0] == :self && s[2] == :up || s[0] == :defn && s[1] == :up) }.last.last
           sexps.each do |sexp|
             next unless (method = extract_method_call(sexp)) && [:create_trigger, :drop_trigger].include?(method)
             trigger = instance_eval("generate_" + generator.process(sexp))

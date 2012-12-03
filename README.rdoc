@@ -6,14 +6,18 @@ and a simple rake task does all the dirty work for you.
 
 == Installation
 
-=== Step 1.
+=== Rails 3
 
-If you are using bundler, just put hairtrigger in your Gemfile. 
+If you are using Rails 3, just put hairtrigger in your Gemfile. 
 
-If you're not using bundler, you can "gem install hairtrigger" and then put 
-hairtrigger in environment.rb
+=== Rails 2
 
-=== Step 2.
+==== Step 1.
+
+Put hairtrigger in your Gemfile, or if you're not using bundler, you can
+"gem install hairtrigger" and then put hairtrigger in environment.rb
+
+==== Step 2.
 
 Create lib/tasks/hair_trigger.rake with the following:
 
@@ -59,38 +63,6 @@ generate appropriate drop/create statements for any model triggers that get
 removed or updated. It does this by diffing the current model trigger
 declarations and any auto-generated triggers in schema.rb (and subsequent
 migrations).
-
-=== Manual Migrations
-
-You can also manage triggers manually in your migrations via create_trigger and
-drop_trigger. They are a little more verbose than model triggers, and they can
-be more work since you need to figure out the up/down create/drop logic when
-you change things. A sample trigger:
-
- create_trigger(:compatibility => 1).on(:users).after(:insert) do
-   "UPDATE accounts SET user_count = user_count + 1 WHERE id = NEW.account_id;"
- end
-
-==== Manual triggers and :compatibility
-
-As bugs are fixed and features are implemented in hairtrigger, it's possible
-that the generated trigger SQL will change (this has only happened once so
-far). If you upgrade to a newer version of hairtrigger, it needs a way of
-knowing which previous version generated the original trigger. You only need
-to worry about this for manual trigger migrations, as the model ones
-automatically take care of this. For your manual triggers you can either:
-
-* pass ":compatibility => x" to your create_trigger statement, where x is
-  whatever HairTrigger::Builder.compatiblity is (1 for this version).
-* set "HairTrigger::Builder.base_compatibility = x" in an initializer, where
-  x is whatever HairTrigger::Builder.compatiblity is. This is like doing the
-  first option on every create_trigger. Note that once the compatibility
-  changes, you'll need to set :compatibility on new triggers (unless you
-  just redo all your triggers and bump the base_compatibility).
-
-If you upgrade to a newer version of hairtrigger and see that the SQL
-compatibility has changed, you'll need to set the appropriate compatibility
-on any new triggers that you create.
 
 === Chainable Methods
 
@@ -139,10 +111,10 @@ and timing. For example:
    t.all do # every row
      # some sql
    end
-   t.where("OLD.foo <> NEW.foo") do
+   t.where("OLD.foo != NEW.foo") do
      # some more sql
    end
-   t.where("OLD.bar <> NEW.bar") do
+   t.where("OLD.bar != NEW.bar") do
      # some other sql
    end
  end
@@ -174,6 +146,38 @@ you might do something like the following:
     WHERE users.id = user_id AND buckets.id = NEW.bucket_id
     MYSQL
   end
+
+=== Manual Migrations
+
+You can also manage triggers manually in your migrations via create_trigger and
+drop_trigger. They are a little more verbose than model triggers, and they can
+be more work since you need to figure out the up/down create/drop logic when
+you change things. A sample trigger:
+
+ create_trigger(:compatibility => 1).on(:users).after(:insert) do
+   "UPDATE accounts SET user_count = user_count + 1 WHERE id = NEW.account_id;"
+ end
+
+==== Manual triggers and :compatibility
+
+As bugs are fixed and features are implemented in hairtrigger, it's possible
+that the generated trigger SQL will change (this has only happened once so
+far). If you upgrade to a newer version of hairtrigger, it needs a way of
+knowing which previous version generated the original trigger. You only need
+to worry about this for manual trigger migrations, as the model ones
+automatically take care of this. For your manual triggers you can either:
+
+* pass ":compatibility => x" to your create_trigger statement, where x is
+  whatever HairTrigger::Builder.compatiblity is (1 for this version).
+* set "HairTrigger::Builder.base_compatibility = x" in an initializer, where
+  x is whatever HairTrigger::Builder.compatiblity is. This is like doing the
+  first option on every create_trigger. Note that once the compatibility
+  changes, you'll need to set :compatibility on new triggers (unless you
+  just redo all your triggers and bump the base_compatibility).
+
+If you upgrade to a newer version of hairtrigger and see that the SQL
+compatibility has changed, you'll need to set the appropriate compatibility
+on any new triggers that you create.
 
 == rake db:schema:dump
 
@@ -251,7 +255,7 @@ you want to support.
 
 == Compatibility
 
-* Rails 2.3 - Rails 3.0.x
+* Rails 2.3+
 * Postgres 8.0+
 * MySQL 5.0.10+
 * SQLite 3.3.8+

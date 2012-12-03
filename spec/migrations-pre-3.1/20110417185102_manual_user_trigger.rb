@@ -1,5 +1,5 @@
 class ManualUserTrigger < ActiveRecord::Migration
-  def up
+  def self.up
     create_trigger(:compatibility => 1).
         on("users").
         after(:update).

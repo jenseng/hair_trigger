@@ -3,7 +3,7 @@
 # will be undone by the next auto-generated trigger migration.
 
 class UserTrigger < ActiveRecord::Migration
-  def up
+  def self.up
     create_trigger("users_after_insert_row_when_new_name_bob__tr", :generated => true, :compatibility => 1).
         on("users").
         after(:insert).
@@ -12,7 +12,7 @@ class UserTrigger < ActiveRecord::Migration
     end
   end
 
-  def down
+  def self.down
     drop_trigger("users_after_insert_row_when_new_name_bob__tr", "users")
   end
 end

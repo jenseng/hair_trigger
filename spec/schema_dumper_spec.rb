@@ -20,7 +20,7 @@ def reset_tmp
   FileUtils.mkdir_p(HairTrigger.model_path)
   FileUtils.mkdir_p(HairTrigger.migration_path)
   FileUtils.cp_r('spec/models', 'tmp')
-  FileUtils.cp_r('spec/migrations', 'tmp')
+  FileUtils.cp_r(Dir.glob("spec/migrations#{ActiveRecord::VERSION::STRING < "3.1." ? "-pre-3.1" : ""}/*"), HairTrigger.migration_path)
 end
 
 def initialize_db(adapter)
