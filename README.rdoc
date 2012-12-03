@@ -275,4 +275,4 @@ you want to support.
 
 == Copyright
 
-Copyright (c) 2011 Jon Jensen. See LICENSE.txt for further details.
+Copyright (c) 2012 Jon Jensen. See LICENSE.txt for further details.

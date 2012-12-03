@@ -1,3 +1,5 @@
+require 'hair_trigger/version'
+
 module HairTrigger
   class Builder
     class DeclarationError < StandardError; end
@@ -425,18 +427,7 @@ BEGIN
 
       def compatibility
         @compatibility ||= begin
-          gem_version = (File.read(File.dirname(__FILE__) + '/../../VERSION').chomp rescue '0.1.3').split(/\./).map(&:to_i)
-          gem_version.instance_eval(<<-METHODS)
-            def <=>(other)
-              [size, other.size].max.times do |i|
-                c = self[i].to_i <=> other[i].to_i
-                return c unless c == 0
-              end
-              0
-            end
-            extend Comparable
-          METHODS
-          if gem_version <= [0, 1, 3]
+          if HairTrigger::VERSION <= "0.1.3"
             0 # initial releases
           else
             1 # postgres RETURN bugfix
