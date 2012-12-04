@@ -15,13 +15,13 @@ test:
     database: ":memory:"
 travis:
   mysql:
-    << *mysql_defaults
+    <<: *mysql_defaults
     username: root
   mysql2:
-    << *mysql2_defaults
+    <<: *mysql2_defaults
     username: root
   postgresql:
-    << *postgres_defaults
+    <<: *postgres_defaults
     username: postgres
   sqlite3:
-    << *sqlite_defaults
+    <<: *sqlite_defaults
