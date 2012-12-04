@@ -1,5 +1,5 @@
 module HairTrigger
-  VERSION = "0.1.14"
+  VERSION = "0.2.0"
 
   def VERSION.<=>(other)
     split(/\./).map(&:to_i) <=> other.split(/\./).map(&:to_i)

@@ -1,4 +1,5 @@
 = HairTrigger
+{<img src="https://secure.travis-ci.org/jenseng/hair_trigger.png?branch=master" />}[http://travis-ci.org/jenseng/hair_trigger]
 
 HairTrigger lets you create and manage database triggers in a concise,
 db-agnostic, Rails-y way. You declare triggers right in your models in Ruby,
@@ -262,6 +263,7 @@ you want to support.
 
 == Version History
 
+* 0.2.0 Rails 3.1+ support, easier installation, ruby 1.9 fix, travis-ci
 * 0.1.14 sqlite + ruby1.9 bugfix
 * 0.1.13 drop_trigger fix
 * 0.1.12 DB-specific trigger body support, bugfixes
