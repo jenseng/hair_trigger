@@ -1,0 +1,27 @@
+defaults: &defaults
+  database: hairtrigger_schema_test
+  username: hairtrigger
+  host: localhost
+test:
+  mysql: &mysql_defaults
+    <<: *defaults
+  mysql2: &mysql2_defaults
+    <<: *defaults
+  postgresql: &postgres_defaults
+    <<: *defaults
+    min_messages: error
+  sqlite3: &sqlite_defaults
+    <<: *defaults
+    database: ":memory:"
+travis:
+  mysql:
+    << *mysql_defaults
+    username: root
+  mysql2:
+    << *mysql2_defaults
+    username: root
+  postgresql:
+    << *postgres_defaults
+    username: postgres
+  sqlite3:
+    << *sqlite_defaults
