@@ -25,7 +25,7 @@ module HairTrigger
           class_name = model.sub(/\A.*\/(.*?)\.rb\z/, '\1').camelize
           next unless File.read(model) =~ /^\s*trigger[\.\(]/
           begin
-            require model unless Object.const_defined?(class_name)
+            require "./#{model}" unless Object.const_defined?(class_name)
           rescue StandardError, LoadError
             raise "unable to load #{class_name} and its trigger(s)"
           end
