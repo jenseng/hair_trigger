@@ -157,7 +157,7 @@ module HairTrigger
     def validate!(direction = :down)
       @errors.each do |(error, *adapters)|
         raise GenerationError, error if adapters.include?(adapter_name)
-        $stderr.puts "WARNING: " + message if self.class.show_warnings
+        $stderr.puts "WARNING: " + error if self.class.show_warnings
       end
       if direction != :up
         @triggers.each{ |t| t.validate!(:down) } if @triggers
