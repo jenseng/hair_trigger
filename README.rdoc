@@ -263,6 +263,7 @@ you want to support.
 
 == Version History
 
+* 0.2.1 Bugfix for adapter-specific warnings, loosen parser dependencies
 * 0.2.0 Rails 3.1+ support, easier installation, ruby 1.9 fix, travis-ci
 * 0.1.14 sqlite + ruby1.9 bugfix
 * 0.1.13 drop_trigger fix
