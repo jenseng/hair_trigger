@@ -30,7 +30,7 @@ FOR EACH ROW
 #{actions}
             SQL
           end
-        when :postgresql
+        when :postgresql, :postgis
           function_conditions = "(SELECT typname FROM pg_type WHERE oid = prorettype) = 'trigger'"
           function_conditions << <<-SQL unless options[:simple_check]
             AND oid IN (
