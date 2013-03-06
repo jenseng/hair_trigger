@@ -186,7 +186,7 @@ module HairTrigger
             generate_trigger_sqlite
           when :mysql
             generate_trigger_mysql
-          when :postgresql
+          when :postgresql, :postgis
             generate_trigger_postgresql
           else
             raise GenerationError, "don't know how to build #{adapter_name} triggers yet"
@@ -314,7 +314,7 @@ module HairTrigger
       case adapter_name
         when :sqlite, :mysql
           "DROP TRIGGER IF EXISTS #{prepared_name};\n"
-        when :postgresql
+        when :postgresql, :postgis
           "DROP TRIGGER IF EXISTS #{prepared_name} ON #{options[:table]};\nDROP FUNCTION IF EXISTS #{prepared_name}();\n"
         else
           raise GenerationError, "don't know how to drop #{adapter_name} triggers yet"
@@ -388,7 +388,7 @@ BEGIN
 
     def db_version
       @db_version ||= case adapter_name
-        when :postgresql
+        when :postgresql, :postgis
           adapter.send(:postgresql_version)
       end
     end
