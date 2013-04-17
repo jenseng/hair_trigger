@@ -1,8 +1,8 @@
  source "http://rubygems.org"
  
 gem "activerecord", "~> 2.3.0"
-gem 'ruby_parser', '2.0.6'
-gem 'ruby2ruby', '1.2.5'
+gem 'ruby_parser', '~> 3.0'
+gem 'ruby2ruby', '~> 2.0.4'
 group :test do
   gem 'rake'
   gem "rspec", "~> 2.12.0"
