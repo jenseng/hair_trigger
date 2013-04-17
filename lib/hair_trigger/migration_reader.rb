@@ -16,7 +16,7 @@ module HairTrigger
         else
           contents = File.read(source.filename)
           return [] unless contents =~ /(create|drop)_trigger/
-          sexps = RubyParser.new.parse(contents)
+          sexps = RubyParser.for_current_ruby.parse(contents)
           # find the migration class
           sexps = [sexps] unless sexps[0] == :block
           sexps = sexps.detect{ |s| s.is_a?(Sexp) && s[0] == :class && s[1] == source.name.to_sym }.last
