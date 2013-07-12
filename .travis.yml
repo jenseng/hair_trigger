@@ -13,9 +13,13 @@ matrix:
   exclude:
     - rvm: 1.8.7
       gemfile: Gemfile
+      env: DB_CONFIG=travis
     - rvm: 1.8.7
       gemfile: gemfiles/Gemfile.activerecord-3.2.x
+      env: DB_CONFIG=travis
     - rvm: 2.0.0
       gemfile: gemfiles/Gemfile.activerecord-3.0.x
+      env: DB_CONFIG=travis
     - rvm: 2.0.0
       gemfile: gemfiles/Gemfile.activerecord-2.3.x
+      env: DB_CONFIG=travis
