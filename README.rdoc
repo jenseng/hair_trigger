@@ -7,9 +7,9 @@ and a simple rake task does all the dirty work for you.
 
 == Installation
 
-=== Rails 3
+=== Rails 3 or 4
 
-If you are using Rails 3, just put hairtrigger in your Gemfile. 
+If you are using Rails 3 or 4, just put hairtrigger in your Gemfile. 
 
 === Rails 2
 
@@ -256,6 +256,7 @@ you want to support.
 
 == Compatibility
 
+* Ruby 1.8.7+
 * Rails 2.3+
 * Postgres 8.0+
 * MySQL 5.0.10+
@@ -263,6 +264,7 @@ you want to support.
 
 == Version History
 
+* 0.2.4 Rails 4 and Ruby 2 support
 * 0.2.3 Better 1.9 support, update parsing gems
 * 0.2.2 PostGIS support
 * 0.2.1 Bugfix for adapter-specific warnings, loosen parser dependencies
@@ -284,4 +286,4 @@ you want to support.
 
 == Copyright
 
-Copyright (c) 2012 Jon Jensen. See LICENSE.txt for further details.
+Copyright (c) 2011-2013 Jon Jensen. See LICENSE.txt for further details.

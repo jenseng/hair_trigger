@@ -36,6 +36,13 @@ module HairTrigger
         ActiveRecord::Base.descendants
     end
 
+    def migrator
+      migrations = ActiveRecord::VERSION::STRING >= "4.0." ?
+        ActiveRecord::Migrator.migrations(migration_path) :
+        migration_path
+      ActiveRecord::Migrator.new(:up, migrations)
+    end
+
     def current_migrations(options = {})
       if options[:in_rake_task]
         options[:include_manual_triggers] = true
@@ -51,7 +58,7 @@ module HairTrigger
       # if we're not in such a rake task (i.e. we just want to know what
       # triggers are defined, whether or not they are applied in the db), we
       # evaluate all migrations along with schema.rb, ordered by version
-      migrator = ActiveRecord::Migrator.new(:up, migration_path)
+      migrator = self.migrator
       migrated = migrator.migrated rescue []
       migrations = []
       migrator.migrations.each do |migration|
