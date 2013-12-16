@@ -14,8 +14,8 @@ class MockAdapter
   end
 end
 
-def builder
-  HairTrigger::Builder.new(nil, :adapter => @adapter)
+def builder(name = nil)
+  HairTrigger::Builder.new(name, :adapter => @adapter)
 end
 
 describe "builder" do
@@ -45,6 +45,20 @@ describe "builder" do
       @adapter = MockAdapter.new("mysql")
       HairTrigger::Builder.new(nil, :adapter => @adapter, :compatibility => 0).on(:foos).after(:update){ "FOO" }.
         should_not eql(builder.on(:foos).after(:update){ "FOO" })
+    end
+  end
+
+  describe "name" do
+    it "should be inferred if none is provided" do
+      builder.on(:foos).after(:update){ "foo" }.prepared_name.
+        should == "foos_after_update_row_tr"
+    end
+
+    it "should respect the last chained name" do
+      builder("lolwut").on(:foos).after(:update){ "foo" }.prepared_name.
+        should == "lolwut"
+      builder("lolwut").on(:foos).name("zomg").after(:update).name("yolo"){ "foo" }.prepared_name.
+        should == "yolo"
     end
   end
 
