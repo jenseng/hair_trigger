@@ -283,7 +283,7 @@ you want to support.
 * MySQL 5.0.10+
 * SQLite 3.3.8+
 
-## [Changelog](blob/master/CHANGELOG.md)
+## [Changelog](CHANGELOG.md)
 
 ## Copyright
 
