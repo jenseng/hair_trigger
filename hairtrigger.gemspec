@@ -18,8 +18,7 @@ Gem::Specification.new do |s|
   s.homepage          = 'http://github.com/jenseng/hair_trigger'
   s.license           = "MIT"
 
-  s.extra_rdoc_files = %w(README.rdoc)
-  s.files = %w(LICENSE.txt Rakefile README.rdoc) + Dir['lib/**/*.rb'] + Dir['lib/**/*.rake'] + Dir['spec/**/*.rb']
+  s.files = %w(LICENSE.txt Rakefile README.md) + Dir['lib/**/*.rb'] + Dir['lib/**/*.rake'] + Dir['spec/**/*.rb']
 
   s.add_dependency 'activerecord', '>= 2.3'
   s.add_dependency 'ruby_parser', '~> 3.4'
