@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 lib = File.expand_path('../lib/', __FILE__)
 $:.unshift lib unless $:.include?(lib)
- 
+
 require 'hair_trigger/version'
 
 Gem::Specification.new do |s|
@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
   s.files = %w(LICENSE.txt Rakefile README.rdoc) + Dir['lib/**/*.rb'] + Dir['lib/**/*.rake'] + Dir['spec/**/*.rb']
 
   s.add_dependency 'activerecord', '>= 2.3'
-  s.add_dependency 'ruby_parser', '~> 3.2.2'
+  s.add_dependency 'ruby_parser', '~> 3.4'
   s.add_dependency 'ruby2ruby', '~> 2.0.6'
   s.add_development_dependency 'rake'
   s.add_development_dependency 'rspec', '~> 2.12.0'
