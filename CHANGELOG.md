@@ -4,8 +4,8 @@
 
 ### 0.2.6
 
-* Ruby 2.1 support
-* Fix `HairTrigger::migrations_current?` bug ([#25](/jenseng/hair_trigger/issues/25))
+* Ruby 2.1 support ([#23](https://github.com/jenseng/hair_trigger/issues/23))
+* Fix `HairTrigger::migrations_current?` bug ([#25](https://github.com/jenseng/hair_trigger/issues/25))
 
 ### 0.2.5
 
