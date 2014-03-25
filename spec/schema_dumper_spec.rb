@@ -1,12 +1,3 @@
-require 'active_record'
-require 'logger'
-require 'active_record/connection_adapters/postgresql_adapter'
-require 'active_record/connection_adapters/mysql_adapter'
-require 'active_record/connection_adapters/sqlite3_adapter'
-require 'mysql2'
-require 'rspec'
-require 'hair_trigger'
-require 'yaml'
 require 'spec_helper'
 
 # for this spec to work, you need to have postgres and mysql installed (in
@@ -20,6 +11,7 @@ describe "schema dumping" do
     before do
       reset_tmp
       initialize_db
+      migrate_db
       db_triggers.grep(/bob_count \+ 1/).size.should eql(1)
     end
 
@@ -42,6 +34,7 @@ describe "schema dumping" do
         replace_file_contents HairTrigger.model_path + '/user.rb',
           '"UPDATE groups SET bob_count = bob_count + 1"',
           '{:default => "UPDATE groups SET bob_count = bob_count + 2"}'
+        reset_models
 
         HairTrigger.should_not be_migrations_current
         migration = HairTrigger.generate_migration
@@ -76,6 +69,7 @@ describe "schema dumping" do
         replace_file_contents HairTrigger.model_path + '/user.rb',
           '"UPDATE groups SET bob_count = bob_count + 1"',
           '{:default => "UPDATE groups SET bob_count = bob_count + 2"}'
+        reset_models
 
         HairTrigger.should_not be_migrations_current
         migration = HairTrigger.generate_migration

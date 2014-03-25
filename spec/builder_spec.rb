@@ -1,6 +1,4 @@
-require 'rspec'
-require 'active_record'
-require 'hair_trigger'
+require 'spec_helper'
 
 HairTrigger::Builder.show_warnings = false
 

@@ -1,7 +1,18 @@
+require 'rspec'
+require 'active_record'
+require 'logger'
+require 'hair_trigger'
+require 'yaml'
+
 CONFIGS = YAML.load_file(File.expand_path(File.dirname(__FILE__) + '/../database.yml'))[ENV["DB_CONFIG"] || "test"]
 ADAPTERS = [:mysql, :mysql2, :postgresql, :sqlite3]
 
 def each_adapter
+  require 'active_record/connection_adapters/postgresql_adapter'
+  require 'active_record/connection_adapters/mysql_adapter'
+  require 'active_record/connection_adapters/sqlite3_adapter'
+  require 'mysql2'
+
   ADAPTERS.each do |adapter_name|
     context "under #{adapter_name}" do
       let(:adapter) { adapter_name }
@@ -11,6 +22,12 @@ def each_adapter
 end
 
 shared_context "hairtrigger utils" do
+
+  def reset_models
+    User.send :remove_instance_variable, :@triggers if Object.const_defined?('User')
+    load './tmp/models/user.rb' # since some tests modify it
+  end
+
   def reset_tmp(options = {})
     options[:migration_glob] ||= '*'
     HairTrigger.model_path = 'tmp/models'
@@ -19,6 +36,7 @@ shared_context "hairtrigger utils" do
     FileUtils.mkdir_p(HairTrigger.model_path)
     FileUtils.mkdir_p(HairTrigger.migration_path)
     FileUtils.cp_r('spec/models', 'tmp')
+    reset_models
     FileUtils.cp_r(Dir.glob("spec/migrations#{ActiveRecord::VERSION::STRING < "3.1." ? "-pre-3.1" : ""}/#{options[:migration_glob]}"), HairTrigger.migration_path)
   end
 
@@ -39,7 +57,6 @@ shared_context "hairtrigger utils" do
     Arel::Visitors::ENGINE_VISITORS.delete(ActiveRecord::Base) if defined?(Arel)
     ActiveRecord::Base.establish_connection(config)
     ActiveRecord::Base.logger = Logger.new('/dev/null')
-    migrate_db
     ActiveRecord::SchemaDumper.previous_schema = nil
   end
 

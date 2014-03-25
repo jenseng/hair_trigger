@@ -152,6 +152,7 @@ module HairTrigger
           @actions.inject({}){ |hash, (key, value)| hash[key] = interpolate(value).rstrip; hash } :
           interpolate(@actions).rstrip
       end
+      all_names # ensure (component) trigger names are all cached
     end
 
     def validate!(direction = :down)
