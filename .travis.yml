@@ -1,6 +1,7 @@
 language: ruby
 env: DB_CONFIG=travis
 rvm:
+  - 2.1.0
   - 2.0.0
   - 1.9.3
   - 1.8.7
@@ -21,5 +22,11 @@ matrix:
       gemfile: gemfiles/Gemfile.activerecord-3.0.x
       env: DB_CONFIG=travis
     - rvm: 2.0.0
+      gemfile: gemfiles/Gemfile.activerecord-2.3.x
+      env: DB_CONFIG=travis
+    - rvm: 2.1.0
+      gemfile: gemfiles/Gemfile.activerecord-3.0.x
+      env: DB_CONFIG=travis
+    - rvm: 2.1.0
       gemfile: gemfiles/Gemfile.activerecord-2.3.x
       env: DB_CONFIG=travis
