@@ -1,7 +1,7 @@
 source "http://rubygems.org"
  
 gem "activerecord", "~> 3.2.0"
-gem 'ruby_parser', '~> 3.2.2'
+gem 'ruby_parser', '>= 3.5'
 gem 'ruby2ruby', '~> 2.0.6'
 group :test do
   gem 'rake'
