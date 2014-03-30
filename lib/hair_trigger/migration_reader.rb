@@ -23,6 +23,7 @@ module HairTrigger
           # find the block of the up method
           sexps = sexps.last if sexps.last.is_a?(Sexp) && sexps.last[0] == :block
           sexps = sexps.detect{ |s| s.is_a?(Sexp) && (s[0] == :defs && s[1] && s[1][0] == :self && s[2] == :up || s[0] == :defn && s[1] == :up) }
+          return [] unless sexps # no `up` method... unsupported `change` perhaps?
           sexps.each do |sexp|
             next unless (method = extract_method_call(sexp)) && [:create_trigger, :drop_trigger].include?(method)
             trigger = instance_eval("generate_" + generator.process(sexp))
@@ -32,6 +33,7 @@ module HairTrigger
         triggers
       rescue
         $stderr.puts "Error reading triggers in #{source.filename rescue "schema.rb"}: #{$!}"
+        []
       end
 
       private

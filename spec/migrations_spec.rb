@@ -6,9 +6,9 @@ require 'spec_helper'
 
 describe "migrations" do
   include_context "hairtrigger utils"
+  let(:adapter) { :sqlite3 }
 
   describe "migrations_current?" do
-    let(:adapter) { :sqlite3 }
 
     it "should return false if there are pending model triggers" do
       reset_tmp(:migration_glob => "*initial_tables*")
@@ -35,6 +35,26 @@ describe "migrations" do
       initialize_db
       migrate_db
       HairTrigger.should be_migrations_current
+    end
+  end
+
+  describe "current_triggers" do
+    it "should be inferred from self.up methods" do
+      reset_tmp(:migration_glob => "20110331212*")
+      initialize_db
+
+      migrations = HairTrigger.current_migrations
+      migrations.size.should == 1
+      migrations[0][1].prepared_name.should == "users_after_insert_row_when_new_name_bob__tr"
+    end
+
+    it "should not be inferred from change methods" do
+      reset_tmp(:migration_glob => "*manual*")
+      replace_file_contents("tmp/migrations/20110417185102_manual_user_trigger.rb", "def up", "def change")
+      initialize_db
+
+      migrations = HairTrigger.current_migrations
+      migrations.size.should == 0
     end
   end
 end
