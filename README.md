@@ -173,6 +173,11 @@ create_trigger(:compatibility => 1).on(:users).after(:insert) do
 end
 ```
 
+Because `create_trigger` may drop an existing trigger of the same name,
+you need to actually implement `up`/`down` methods in your migration
+(rather than `change`) so that it does the right thing when
+rolling back.
+
 #### Manual triggers and :compatibility
 
 As bugs are fixed and features are implemented in hairtrigger, it's possible
