@@ -114,7 +114,7 @@ module HairTrigger
 
     def self.chainable_methods(*methods)
       methods.each do |method|
-        class_eval <<-METHOD
+        class_eval <<-METHOD, __FILE__, __LINE__ + 1
           alias #{method}_orig #{method}
           def #{method}(*args)
             @chained_calls << :#{method}
@@ -128,7 +128,7 @@ module HairTrigger
               @chained_calls.pop # the subtrigger will get this, we don't need it
               @chained_calls = @chained_calls.uniq
               @triggers << trigger = clone
-              trigger.#{method}(*args, &Proc.new)
+              trigger.#{method}(*args, &(block_given? ? Proc.new : nil))
             else
               #{method}_orig(*args)
               maybe_execute(&Proc.new) if block_given?

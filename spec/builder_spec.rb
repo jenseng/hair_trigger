@@ -60,6 +60,19 @@ describe "builder" do
     end
   end
 
+  describe "groups" do
+    it "should allow chained methods" do
+      triggers = builder.on(:foos){ |t|
+        t.where('bar=1').name('bar'){ 'BAR;' }
+        t.where('baz=1').name('baz'){ 'BAZ;' }
+      }.triggers
+      triggers.map(&:prepare!)
+      triggers.map(&:prepared_name).should == ['bar', 'baz']
+      triggers.map(&:prepared_where).should == ['bar=1', 'baz=1']
+      triggers.map(&:prepared_actions).should == ['BAR;', 'BAZ;']
+    end
+  end
+
   context "adapter-specific actions" do
     before(:each) do
       @adapter = MockAdapter.new("mysql")
