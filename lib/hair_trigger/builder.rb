@@ -15,6 +15,7 @@ module HairTrigger
       @options = {}
       @chained_calls = []
       @errors = []
+      @warnings = []
       set_name(name) if name
       {:timing => :after, :for_each => :row}.update(options).each do |key, value|
         if respond_to?("set_#{key}")
@@ -30,6 +31,7 @@ module HairTrigger
       @triggers = nil
       @chained_calls = []
       @errors = []
+      @warnings = []
       @options = @options.dup
       @options.delete(:name) # this will be inferred (or set further down the line)
       @options.each do |key, value|
@@ -112,6 +114,12 @@ module HairTrigger
       [prepared_name] + (@triggers ? @triggers.map(&:prepared_name) : [])
     end
 
+    def all_triggers(include_self = true)
+      triggers = []
+      triggers << self if include_self
+      (@triggers || []).map(&:all_triggers).inject(triggers, &:concat)
+    end
+
     def self.chainable_methods(*methods)
       methods.each do |method|
         class_eval <<-METHOD, __FILE__, __LINE__ + 1
@@ -160,6 +168,10 @@ module HairTrigger
         raise GenerationError, error if adapters.include?(adapter_name)
         $stderr.puts "WARNING: " + error if self.class.show_warnings
       end
+      @warnings.each do |(error, *adapters)|
+        $stderr.puts "WARNING: " + error if adapters.include?(adapter_name) && self.class.show_warnings
+      end
+
       if direction != :up
         @triggers.each{ |t| t.validate!(:down) } if @triggers
       end
@@ -247,7 +259,11 @@ module HairTrigger
     end
 
     def errors
-      (@triggers || []).inject(@errors){ |errors, t| errors + t.errors }
+      (@triggers || []).map(&:errors).inject(@errors, &:+)
+    end
+
+    def warnings
+      (@triggers || []).map(&:warnings).inject(@warnings, &:+)
     end
 
     private
@@ -289,8 +305,23 @@ module HairTrigger
         end
       end
       # only the top-most block actually executes
-      Array(generate).each{ |action| adapter.execute(action)} if options[:execute] && !@trigger_group
+      if !@trigger_group
+        validate_names!
+        if options[:execute]
+          Array(generate).each{ |action| adapter.execute(action)}
+        end
+      end
       self
+    end
+
+    def validate_names!
+      subtriggers = all_triggers(false)
+      named_subtriggers = subtriggers.select{ |t| t.options[:name] }
+      if named_subtriggers.present? && !options[:name]
+        @warnings << ["nested triggers have explicit names, but trigger group does not. trigger name will be inferred", :mysql]
+      elsif subtriggers.present? && !named_subtriggers.present? && options[:name]
+        @warnings << ["trigger group has an explicit name, but nested triggers do not. trigger names will be inferred", :postgresql, :sqlite]
+      end
     end
 
     def adapter_name

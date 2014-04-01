@@ -125,6 +125,15 @@ describe "builder" do
       }.should raise_error
     end
 
+    it "should warn on explicit subtrigger names and no group name" do
+      trigger = builder.on(:foos){ |t|
+        t.where('bar=1').name('bar'){ 'BAR;' }
+        t.where('baz=1').name('baz'){ 'BAZ;' }
+      }
+      trigger.warnings.size.should == 1
+      trigger.warnings.first.first.should =~ /nested triggers have explicit names/
+    end
+
     it "should accept security" do
       builder.on(:foos).after(:update).security(:definer){ "FOO" }.generate.
         grep(/DEFINER/).size.should eql(0) # default, so we don't include it
@@ -181,6 +190,15 @@ describe "builder" do
         t.after(:insert){ 'BAZ' }
       }
       trigger.generate.grep(/CREATE.*TRIGGER/).size.should eql(3)
+    end
+
+    it "should warn on an explicit group names and no subtrigger names" do
+      trigger = builder.on(:foos).name('foos'){ |t|
+        t.where('bar=1'){ 'BAR;' }
+        t.where('baz=1'){ 'BAZ;' }
+      }
+      trigger.warnings.size.should == 1
+      trigger.warnings.first.first.should =~ /trigger group has an explicit name/
     end
 
     it "should accept security" do
@@ -262,6 +280,15 @@ describe "builder" do
         t.after(:insert){ 'BAZ' }
       }
       trigger.generate.grep(/CREATE.*TRIGGER/).size.should eql(3)
+    end
+
+    it "should warn on an explicit group names and no subtrigger names" do
+      trigger = builder.on(:foos).name('foos'){ |t|
+        t.where('bar=1'){ 'BAR;' }
+        t.where('baz=1'){ 'BAZ;' }
+      }
+      trigger.warnings.size.should == 1
+      trigger.warnings.first.first.should =~ /trigger group has an explicit name/
     end
 
     it "should reject security" do

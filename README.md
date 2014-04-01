@@ -112,6 +112,11 @@ For MySQL, this will just create a single trigger with conditional logic
 distinct triggers. This same notation is also used within trigger migrations.
 MySQL does not currently support nested trigger groups.
 
+Because of these differences in how the triggers are created, take care
+when setting the `name` for triggers or groups. In other words,
+PostgreSQL/SQLite will use the `name`s specified on the individual
+triggers; MySQL will use the `name` specified on the group.
+
 ### Database-specific trigger bodies
 
 Although HairTrigger aims to be totally db-agnostic, at times you do need a
