@@ -1,8 +1,12 @@
 module HairTrigger
   module SchemaDumper
     def trailer_with_triggers(stream)
+      orig_show_warnings = Builder.show_warnings
+      Builder.show_warnings = false # we already show them when running the migration
       triggers(stream)
       trailer_without_triggers(stream)
+    ensure
+      Builder.show_warnings = orig_show_warnings
     end
 
     def triggers(stream)

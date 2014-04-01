@@ -50,6 +50,7 @@ module HairTrigger
       def generate_create_trigger(*arguments)
         arguments.unshift({}) if arguments.empty?
         arguments.unshift(nil) if arguments.first.is_a?(Hash)
+        arguments.push({}) if arguments.size == 1
         arguments[1][:compatibility] ||= HairTrigger::Builder.base_compatibility
         ::HairTrigger::Builder.new(*arguments)
       end
