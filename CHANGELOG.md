@@ -2,6 +2,13 @@
 
 ## 0.2.x
 
+### 0.2.7
+
+* Support chaining within trigger groups ([#22](https://github.com/jenseng/hair_trigger/issues/22))
+* Warn when `name` is used incorrectly for the current adapter ([#22](https://github.com/jenseng/hair_trigger/issues/22))
+* Misc doc improvements
+* Minor bug fixes ([#26](https://github.com/jenseng/hair_trigger/issues/26) and [799ac5e](https://github.com/jenseng/hair_trigger/commit/799ac5e))
+
 ### 0.2.6
 
 * Ruby 2.1 support ([#23](https://github.com/jenseng/hair_trigger/issues/23))
