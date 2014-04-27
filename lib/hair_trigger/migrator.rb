@@ -8,10 +8,18 @@ module HairTrigger
 
     class << self
       def extended(base)
-        base.send :alias_method, :proper_table_name_without_hash_awareness, :proper_table_name
-        base.send :alias_method, :proper_table_name, :proper_table_name_with_hash_awareness
+        base.class_eval do
+          class << self
+            alias_method_chain :proper_table_name, :hash_awareness
+          end
+        end
       end
-      alias_method :included, :extended
+
+      def included(base)
+        base.instance_eval do
+          alias_method_chain :proper_table_name, :hash_awareness
+        end
+      end
     end
   end
 end
