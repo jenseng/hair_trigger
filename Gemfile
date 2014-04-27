@@ -4,4 +4,5 @@ gemspec
 
 group :test do
   gem 'rake'
+  gem 'debugger'
 end

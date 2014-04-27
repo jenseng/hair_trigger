@@ -72,8 +72,16 @@ shared_context "hairtrigger utils" do
     io.read
   end
 
+  def trigger(*args)
+    HairTrigger::Builder.new(*args)
+  end
+
+  def conn
+    ActiveRecord::Base.connection
+  end
+
   def db_triggers
-    ActiveRecord::Base.connection.triggers.values
+    conn.triggers.values
   end
 
   def replace_file_contents(path, source, replacement)
