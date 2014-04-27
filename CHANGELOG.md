@@ -2,6 +2,11 @@
 
 ## 0.2.x
 
+### 0.2.8
+
+* Rails 4.1 support ([#30](https://github.com/jenseng/hair_trigger/issues/30))
+* Fix `DEFINER` issues in mysql ([#29](https://github.com/jenseng/hair_trigger/issues/29))
+
 ### 0.2.7
 
 * Support chaining within trigger groups ([#22](https://github.com/jenseng/hair_trigger/issues/22))
