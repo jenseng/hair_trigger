@@ -4,7 +4,7 @@ module HairTrigger
   class Builder
     class DeclarationError < StandardError; end
     class GenerationError < StandardError; end
-  
+
     attr_accessor :options
     attr_reader :triggers # nil unless this is a trigger group
     attr_reader :prepared_actions, :prepared_where # after delayed interpolation
@@ -71,6 +71,10 @@ module HairTrigger
 
     def where(where)
       options[:where] = where
+    end
+
+    def nowrap
+      options[:nowrap] = true
     end
 
     # noop, just a way you can pass a block within a trigger group
@@ -146,7 +150,7 @@ module HairTrigger
         METHOD
       end
     end
-    chainable_methods :name, :on, :for_each, :before, :after, :where, :security, :timing, :events, :all
+    chainable_methods :name, :on, :for_each, :before, :after, :where, :security, :timing, :events, :all, :nowrap
 
     def create_grouped_trigger?
       adapter_name == :mysql
@@ -366,36 +370,44 @@ END;
     def generate_trigger_postgresql
       raise GenerationError, "truncate triggers are only supported on postgres 8.4 and greater" if db_version < 80400 && options[:events].include?('TRUNCATE')
       raise GenerationError, "FOR EACH ROW triggers may not be triggered by truncate events" if options[:for_each] == 'ROW' && options[:events].include?('TRUNCATE')
-      security = options[:security] if options[:security] && options[:security] != :invoker
-      sql = <<-SQL
+
+      if options[:nowrap]
+        trigger_action = raw_actions
+      else
+        security = options[:security] if options[:security] && options[:security] != :invoker
+        sql = <<-SQL
 CREATE FUNCTION #{prepared_name}()
 RETURNS TRIGGER AS $$
 BEGIN
-      SQL
-      if prepared_where && db_version < 90000
-        sql << normalize("IF #{prepared_where} THEN", 1)
-        sql << normalize(raw_actions, 2)
-        sql << normalize("END IF;", 1)
-      else
-        sql << normalize(raw_actions, 1)
-      end
-      # if no return is specified at the end, be sure we set a sane one
-      unless raw_actions =~ /return [^;]+;\s*\z/i
-        if options[:timing] == "AFTER" || options[:for_each] == 'STATEMENT'
-          sql << normalize("RETURN NULL;", 1)
-        elsif options[:events].include?('DELETE')
-          sql << normalize("RETURN OLD;", 1)
+        SQL
+        if prepared_where && db_version < 90000
+          sql << normalize("IF #{prepared_where} THEN", 1)
+          sql << normalize(raw_actions, 2)
+          sql << normalize("END IF;", 1)
         else
-          sql << normalize("RETURN NEW;", 1)
+          sql << normalize(raw_actions, 1)
         end
-      end
-      sql << <<-SQL
+        # if no return is specified at the end, be sure we set a sane one
+        unless raw_actions =~ /return [^;]+;\s*\z/i
+          if options[:timing] == "AFTER" || options[:for_each] == 'STATEMENT'
+            sql << normalize("RETURN NULL;", 1)
+          elsif options[:events].include?('DELETE')
+            sql << normalize("RETURN OLD;", 1)
+          else
+            sql << normalize("RETURN NEW;", 1)
+          end
+        end
+        sql << <<-SQL
 END;
 $$ LANGUAGE plpgsql#{security ? " SECURITY #{security.to_s.upcase}" : ""};
-      SQL
+        SQL
+
+        trigger_action = "#{prepared_name}()"
+      end
+
       [sql, <<-SQL]
 CREATE TRIGGER #{prepared_name} #{options[:timing]} #{options[:events].join(" OR ")} ON #{options[:table]}
-FOR EACH #{options[:for_each]}#{prepared_where && db_version >= 90000 ? " WHEN (" + prepared_where + ')': ''} EXECUTE PROCEDURE #{prepared_name}();
+FOR EACH #{options[:for_each]}#{prepared_where && db_version >= 90000 ? " WHEN (" + prepared_where + ')': ''} EXECUTE PROCEDURE #{trigger_action};
       SQL
     end
 

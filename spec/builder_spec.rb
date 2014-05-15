@@ -100,7 +100,7 @@ describe "builder" do
       }.should raise_error
     end
   end
-  
+
   context "mysql" do
     before(:each) do
       @adapter = MockAdapter.new("mysql")
@@ -240,6 +240,11 @@ describe "builder" do
     it "should add a return statement if none is provided" do
       builder.on(:foos).after(:update){ "FOO" }.generate.
         grep(/RETURN NULL;/).size.should eql(1)
+    end
+
+    it "should not wrap the action in a function" do
+      builder.on(:foos).after(:update).nowrap{ 'existing_procedure()' }.generate.
+        grep(/CREATE FUNCTION/).size.should eql(0)
     end
 
     context "legacy" do
