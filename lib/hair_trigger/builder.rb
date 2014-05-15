@@ -73,8 +73,8 @@ module HairTrigger
       options[:where] = where
     end
 
-    def nowrap
-      options[:nowrap] = true
+    def nowrap(flag = true)
+      options[:nowrap] = flag
     end
 
     # noop, just a way you can pass a block within a trigger group
@@ -373,11 +373,13 @@ END;
       raise GenerationError, "security cannot be used in conjunction with nowrap" if options[:nowrap] && options[:security]
       raise GenerationError, "where can only be used in conjunction with nowrap on postgres 9.0 and greater" if options[:nowrap] && prepared_where && db_version < 90000
 
+      sql = ''
+
       if options[:nowrap]
         trigger_action = raw_actions
       else
         security = options[:security] if options[:security] && options[:security] != :invoker
-        sql = <<-SQL
+        sql << <<-SQL
 CREATE FUNCTION #{prepared_name}()
 RETURNS TRIGGER AS $$
 BEGIN
