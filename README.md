@@ -83,6 +83,11 @@ Required (but may be satisified by `before`/`after`). Possible values are `:befo
 #### events(*events)
 Required (but may be satisified by `before`/`after`). Possible values are `:insert`/`:update`/`:delete`/`:truncate`. MySQL/SQLite only support one action per trigger, and don't support `:truncate`.
 
+#### nowrap(flag = true)
+PostgreSQL specific option to prevent the trigger action from being wrapped in a `CREATE FUNCTION`. This is useful for executing existing triggers/functions directly, but is not compatible with the `security` setting nor can it be used with pre-9.0 PostgreSQL when supplying a `where` condition.
+
+Example: `trigger.after(:update).nowrap { "tsvector_update_trigger(...)" }`
+
 #### all
 Noop, useful for trigger groups (see below).
 
