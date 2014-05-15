@@ -370,6 +370,8 @@ END;
     def generate_trigger_postgresql
       raise GenerationError, "truncate triggers are only supported on postgres 8.4 and greater" if db_version < 80400 && options[:events].include?('TRUNCATE')
       raise GenerationError, "FOR EACH ROW triggers may not be triggered by truncate events" if options[:for_each] == 'ROW' && options[:events].include?('TRUNCATE')
+      raise GenerationError, "security cannot be used in conjunction with nowrap" if options[:nowrap] && options[:security]
+      raise GenerationError, "where can only be used in conjunction with nowrap on postgres 9.0 and greater" if options[:nowrap] && prepared_where && db_version < 90000
 
       if options[:nowrap]
         trigger_action = raw_actions
