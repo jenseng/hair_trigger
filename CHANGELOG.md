@@ -2,6 +2,10 @@
 
 ## 0.2.x
 
+### 0.2.9
+
+* `nowrap` option for Postgres to support easy reuse of existing functions ([#31](https://github.com/jenseng/hair_trigger/pull/31))
+
 ### 0.2.8
 
 * Rails 4.1 support ([#30](https://github.com/jenseng/hair_trigger/issues/30))
