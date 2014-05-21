@@ -100,7 +100,7 @@ describe "builder" do
       }.should raise_error
     end
   end
-  
+
   context "mysql" do
     before(:each) do
       @adapter = MockAdapter.new("mysql")
@@ -242,6 +242,17 @@ describe "builder" do
         grep(/RETURN NULL;/).size.should eql(1)
     end
 
+    it "should not wrap the action in a function" do
+      builder.on(:foos).after(:update).nowrap{ 'existing_procedure()' }.generate.
+        grep(/CREATE FUNCTION/).size.should eql(0)
+    end
+
+    it "should reject combined use of security and nowrap" do
+      lambda {
+        builder.on(:foos).after(:update).security("'user'@'host'").nowrap{ "FOO" }.generate
+      }.should raise_error
+    end
+
     context "legacy" do
       it "should reject truncate pre-8.4" do
         @adapter = MockAdapter.new("postgresql", :postgresql_version => 80300)
@@ -254,6 +265,13 @@ describe "builder" do
         @adapter = MockAdapter.new("postgresql", :postgresql_version => 80400)
         builder.on(:foos).after(:insert).where("BAR"){ "FOO" }.generate.
         grep(/IF BAR/).size.should eql(1)
+      end
+
+      it "should reject combined use of where and nowrap pre-9.0" do
+        @adapter = MockAdapter.new("postgresql", :postgresql_version => 80400)
+        lambda {
+          builder.on(:foos).after(:insert).where("BAR").nowrap{ "FOO" }.generate
+        }.should raise_error
       end
     end
   end
