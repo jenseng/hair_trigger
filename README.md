@@ -100,9 +100,23 @@ Required (but may be satisified by `before`/`after`). Possible values are `:befo
 Required (but may be satisified by `before`/`after`). Possible values are `:insert`/`:update`/`:delete`/`:truncate`. MySQL/SQLite only support one action per trigger, and don't support `:truncate`.
 
 #### nowrap(flag = true)
-PostgreSQL specific option to prevent the trigger action from being wrapped in a `CREATE FUNCTION`. This is useful for executing existing triggers/functions directly, but is not compatible with the `security` setting nor can it be used with pre-9.0 PostgreSQL when supplying a `where` condition.
+PostgreSQL-specific option to prevent the trigger action from being wrapped in a `CREATE FUNCTION`. This is useful for executing existing triggers/functions directly, but is not compatible with the `security` setting nor can it be used with pre-9.0 PostgreSQL when supplying a `where` condition.
 
 Example: `trigger.after(:update).nowrap { "tsvector_update_trigger(...)" }`
+
+#### declare
+PostgreSQL-specific option for declaring variables for use in the
+trigger function. Declarations should be separate by semicolons, e.g.
+
+```ruby
+trigger.after(:insert).declare("user_type text; status text") do
+  <<-SQL
+    IF (NEW.account_id = 1 OR NEW.email LIKE '%company.com') THEN
+      user_type := 'employee';
+    ELSIF ...
+  SQL
+end
+```
 
 #### all
 Noop, useful for trigger groups (see below).

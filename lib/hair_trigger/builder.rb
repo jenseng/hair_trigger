@@ -81,6 +81,10 @@ module HairTrigger
       options[:of] = columns
     end
 
+    def declare(declarations)
+      options[:declarations] = declarations
+    end
+
     # noop, just a way you can pass a block within a trigger group
     def all
     end
@@ -154,7 +158,7 @@ module HairTrigger
         METHOD
       end
     end
-    chainable_methods :name, :on, :for_each, :before, :after, :where, :security, :timing, :events, :all, :nowrap, :of
+    chainable_methods :name, :on, :for_each, :before, :after, :where, :security, :timing, :events, :all, :nowrap, :of, :declare
 
     def create_grouped_trigger?
       adapter_name == :mysql
@@ -370,6 +374,12 @@ module HairTrigger
       "OF " + options[:of].join(", ") + " " if options[:of] && (!check_support || supports_of?)
     end
 
+    def declarations
+      return unless declarations = options[:declarations]
+      declarations = declarations.strip.split(/;/).map(&:strip).join(";\n")
+      "\nDECLARE\n" + normalize(declarations.sub(/;?\n?\z/, ';'), 1).rstrip
+    end
+
     def supports_of?
       case adapter_name
       when :sqlite
@@ -405,6 +415,7 @@ END;
     def generate_trigger_postgresql
       raise GenerationError, "truncate triggers are only supported on postgres 8.4 and greater" if db_version < 80400 && options[:events].include?('TRUNCATE')
       raise GenerationError, "FOR EACH ROW triggers may not be triggered by truncate events" if options[:for_each] == 'ROW' && options[:events].include?('TRUNCATE')
+      raise GenerationError, "declare cannot be used in conjunction with nowrap" if options[:nowrap] && options[:declare]
       raise GenerationError, "security cannot be used in conjunction with nowrap" if options[:nowrap] && options[:security]
       raise GenerationError, "where can only be used in conjunction with nowrap on postgres 9.0 and greater" if options[:nowrap] && prepared_where && db_version < 90000
       raise GenerationError, "of can only be used in conjunction with nowrap on postgres 9.1 and greater" if options[:nowrap] && options[:of] && db_version < 91000
@@ -417,7 +428,7 @@ END;
         security = options[:security] if options[:security] && options[:security] != :invoker
         sql << <<-SQL
 CREATE FUNCTION #{prepared_name}()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER AS $$#{declarations}
 BEGIN
         SQL
         if prepared_where && db_version < 90000

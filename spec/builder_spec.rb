@@ -276,6 +276,11 @@ describe "builder" do
       }.should raise_error
     end
 
+    it "should allow variable declarations" do
+      builder.on(:foos).after(:insert).declare("foo INT"){ "FOO" }.generate.join("\n").
+        should match(/DECLARE\s*foo INT;\s*BEGIN\s*FOO/)
+    end
+
     context "legacy" do
       it "should reject truncate pre-8.4" do
         @adapter = MockAdapter.new("postgresql", :postgresql_version => 80300)
