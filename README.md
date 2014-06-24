@@ -22,6 +22,10 @@ class AccountUser < ActiveRecord::Base
   trigger.after(:insert) do
     "UPDATE accounts SET user_count = user_count + 1 WHERE id = NEW.account_id;"
   end
+
+  trigger.after(:update).of(:name) do
+    "INSERT INTO user_changes(id, name) VALUES(NEW.id, NEW.name);"
+  end
 end
 ```
 
@@ -39,6 +43,14 @@ CREATE TRIGGER account_users_after_insert_row_tr AFTER INSERT ON account_users
 FOR EACH ROW
 BEGIN
     UPDATE accounts SET user_count = user_count + 1 WHERE id = NEW.account_id;
+END
+
+CREATE TRIGGER account_users_after_update_on_name_row_tr AFTER UPDATE ON account_users
+FOR EACH ROW
+BEGIN
+    IF NEW.name <> OLD.name OR (NEW.name IS NULL) <> (OLD.name IS NULL) THEN
+        INSERT INTO user_changes(id, name) VALUES(NEW.id, NEW.name);
+    END IF;
 END
 ```
 
@@ -74,6 +86,10 @@ Shorthand for `timing(:after).events(*events)`.
 #### where(conditions)
 Optional, SQL snippet limiting when the trigger will fire. Supports delayed interpolation of variables.
 
+#### of(*columns)
+
+Only fire the update trigger if at least one of the columns is specified in the statement. Platforms that support it use a native `OF` clause, others will have an inferred `IF ...` statement in the trigger body. Note the former will fire even if the column's value hasn't changed; the latter will not.
+
 #### security(user)
 Permissions/role to check when calling trigger. PostgreSQL supports `:invoker` (default) and `:definer`, MySQL supports `:definer` (default) and arbitrary users (syntax: `'user'@'host'`).
 
@@ -103,10 +119,10 @@ trigger.after(:update) do |t|
   t.all do # every row
     # some sql
   end
-  t.where("OLD.foo != NEW.foo") do
+  t.of("foo") do
     # some more sql
   end
-  t.where("OLD.bar != NEW.bar") do
+  t.where("OLD.bar != NEW.bar AND NEW.bar != 'lol'") do
     # some other sql
   end
 end
