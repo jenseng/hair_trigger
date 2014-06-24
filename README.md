@@ -43,7 +43,7 @@ CREATE TRIGGER account_users_after_insert_row_tr AFTER INSERT ON account_users
 FOR EACH ROW
 BEGIN
     UPDATE accounts SET user_count = user_count + 1 WHERE id = NEW.account_id;
-END
+END;
 
 CREATE TRIGGER account_users_after_update_on_name_row_tr AFTER UPDATE ON account_users
 FOR EACH ROW
@@ -51,7 +51,7 @@ BEGIN
     IF NEW.name <> OLD.name OR (NEW.name IS NULL) <> (OLD.name IS NULL) THEN
         INSERT INTO user_changes(id, name) VALUES(NEW.id, NEW.name);
     END IF;
-END
+END;
 ```
 
 Note that these auto-generated `create_trigger` statements in the migration
