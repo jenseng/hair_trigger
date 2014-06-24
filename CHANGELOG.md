@@ -2,6 +2,11 @@
 
 ## 0.2.x
 
+### 0.2.10
+
+* `of` shorthand for column updates ([#32](https://github.com/jenseng/hair_trigger/issues/32))
+* `declare` option for Postgres ([#34](https://github.com/jenseng/hair_trigger/issues/34))
+
 ### 0.2.9
 
 * `nowrap` option for Postgres to support easy reuse of existing functions ([#31](https://github.com/jenseng/hair_trigger/pull/31))
