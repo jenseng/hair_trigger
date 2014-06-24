@@ -60,6 +60,14 @@ describe "builder" do
     end
   end
 
+  describe "`of' columns" do
+    it "should be disallowed for non-update triggers" do
+      lambda {
+        builder.on(:foos).after(:insert).of(:bar, :baz){ "BAR" }
+      }.should raise_error /of may only be specified on update triggers/
+    end
+  end
+
   describe "groups" do
     it "should allow chained methods" do
       triggers = builder.on(:foos){ |t|
@@ -143,6 +151,16 @@ describe "builder" do
         grep(/DEFINER = 'user'@'host'/).size.should eql(1)
     end
 
+    it "should infer `if' conditionals from `of' columns" do
+      builder.on(:foos).after(:update).of(:bar){ "BAZ" }.generate.join("\n").
+        should include("IF NEW.bar <> OLD.bar OR (NEW.bar IS NULL) <> (OLD.bar IS NULL) THEN")
+    end
+
+    it "should merge `where` and `of` into an `if` conditional" do
+      builder.on(:foos).after(:update).of(:bar).where("lol"){ "BAZ" }.generate.join("\n").
+        should include("IF (lol) AND (NEW.bar <> OLD.bar OR (NEW.bar IS NULL) <> (OLD.bar IS NULL)) THEN")
+    end
+
     it "should reject :invoker security" do
       lambda {
         builder.on(:foos).after(:update).security(:invoker){ "FOO" }.generate
@@ -170,7 +188,7 @@ describe "builder" do
 
   context "postgresql" do
     before(:each) do
-      @adapter = MockAdapter.new("postgresql", :postgresql_version => 90000)
+      @adapter = MockAdapter.new("postgresql", :postgresql_version => 94000)
     end
 
     it "should create multiple triggers for a group" do
@@ -199,6 +217,11 @@ describe "builder" do
       }
       trigger.warnings.size.should == 1
       trigger.warnings.first.first.should =~ /trigger group has an explicit name/
+    end
+
+    it "should accept `of' columns" do
+      trigger = builder.on(:foos).after(:update).of(:bar, :baz){ "BAR" }
+      trigger.generate.grep(/AFTER UPDATE OF bar, baz/).size.should eql(1)
     end
 
     it "should accept security" do
@@ -273,6 +296,12 @@ describe "builder" do
           builder.on(:foos).after(:insert).where("BAR").nowrap{ "FOO" }.generate
         }.should raise_error
       end
+
+      it "should infer `if' conditionals from `of' columns on pre-9.0" do
+        @adapter = MockAdapter.new("postgresql", :postgresql_version => 80400)
+        builder.on(:foos).after(:update).of(:bar){ "BAZ" }.generate.join("\n").
+          should include("IF NEW.bar <> OLD.bar OR (NEW.bar IS NULL) <> (OLD.bar IS NULL) THEN")
+      end
     end
   end
 
@@ -307,6 +336,11 @@ describe "builder" do
       }
       trigger.warnings.size.should == 1
       trigger.warnings.first.first.should =~ /trigger group has an explicit name/
+    end
+
+    it "should accept `of' columns" do
+      trigger = builder.on(:foos).after(:update).of(:bar, :baz){ "BAR" }
+      trigger.generate.grep(/AFTER UPDATE OF bar, baz/).size.should eql(1)
     end
 
     it "should reject security" do

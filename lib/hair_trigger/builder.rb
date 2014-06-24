@@ -77,6 +77,10 @@ module HairTrigger
       options[:nowrap] = flag
     end
 
+    def of(*columns)
+      options[:of] = columns
+    end
+
     # noop, just a way you can pass a block within a trigger group
     def all
     end
@@ -150,7 +154,7 @@ module HairTrigger
         METHOD
       end
     end
-    chainable_methods :name, :on, :for_each, :before, :after, :where, :security, :timing, :events, :all, :nowrap
+    chainable_methods :name, :on, :for_each, :before, :after, :where, :security, :timing, :events, :all, :nowrap, :of
 
     def create_grouped_trigger?
       adapter_name == :mysql
@@ -158,13 +162,27 @@ module HairTrigger
 
     def prepare!
       @triggers.each(&:prepare!) if @triggers
-      @prepared_where = options[:where] = interpolate(options[:where]) if options[:where]
+      prepare_where!
       if @actions
         @prepared_actions = @actions.is_a?(Hash) ?
           @actions.inject({}){ |hash, (key, value)| hash[key] = interpolate(value).rstrip; hash } :
           interpolate(@actions).rstrip
       end
       all_names # ensure (component) trigger names are all cached
+    end
+
+    def prepare_where!
+      parts = []
+      parts << @explicit_where = options[:where] = interpolate(options[:where]) if options[:where]
+      parts << options[:of].map{ |col| change_clause(col) }.join(" OR ") if options[:of] && !supports_of?
+      if parts.present?
+        parts.map!{ |part| "(" + part + ")" } if parts.size > 1
+        @prepared_where = parts.join(" AND ")
+      end
+    end
+
+    def change_clause(column)
+      "NEW.#{column} <> OLD.#{column} OR (NEW.#{column} IS NULL) <> (OLD.#{column} IS NULL)"
     end
 
     def validate!(direction = :down)
@@ -259,7 +277,7 @@ module HairTrigger
     end
 
     def components
-      [self.options, self.prepared_actions, self.prepared_where, self.triggers, @compatibility]
+      [@options, @prepared_actions, @explicit_where, @triggers, @compatibility]
     end
 
     def errors
@@ -296,6 +314,7 @@ module HairTrigger
     end
 
     def maybe_execute(&block)
+      raise DeclarationError, "of may only be specified on update triggers" if options[:of] && options[:events] != ["UPDATE"]
       if block.arity > 0 # we're creating a trigger group, so set up some stuff and pass the buck
         @errors << ["trigger group must specify timing and event(s) for mysql", :mysql] unless options[:timing] && options[:events]
         @errors << ["nested trigger groups are not supported for mysql", :mysql] if @trigger_group
@@ -340,10 +359,26 @@ module HairTrigger
       [options[:table],
        options[:timing],
        options[:events],
+       of_clause(false),
        options[:for_each],
-       prepared_where ? 'when_' + prepared_where : nil
+       @explicit_where ? 'when_' + @explicit_where : nil
       ].flatten.compact.
       join("_").downcase.gsub(/[^a-z0-9_]/, '_').gsub(/_+/, '_')[0, 60] + "_tr"
+    end
+
+    def of_clause(check_support = true)
+      "OF " + options[:of].join(", ") + " " if options[:of] && (!check_support || supports_of?)
+    end
+
+    def supports_of?
+      case adapter_name
+      when :sqlite
+        true
+      when :postgresql, :postgis
+        db_version >= 90000
+      else
+        false
+      end
     end
 
     def generate_drop_trigger
@@ -359,7 +394,7 @@ module HairTrigger
 
     def generate_trigger_sqlite
       <<-SQL
-CREATE TRIGGER #{prepared_name} #{options[:timing]} #{options[:events].first} ON #{options[:table]}
+CREATE TRIGGER #{prepared_name} #{options[:timing]} #{options[:events].first} #{of_clause}ON #{options[:table]}
 FOR EACH #{options[:for_each]}#{prepared_where ? " WHEN " + prepared_where : ''}
 BEGIN
 #{normalize(raw_actions, 1).rstrip}
@@ -372,6 +407,7 @@ END;
       raise GenerationError, "FOR EACH ROW triggers may not be triggered by truncate events" if options[:for_each] == 'ROW' && options[:events].include?('TRUNCATE')
       raise GenerationError, "security cannot be used in conjunction with nowrap" if options[:nowrap] && options[:security]
       raise GenerationError, "where can only be used in conjunction with nowrap on postgres 9.0 and greater" if options[:nowrap] && prepared_where && db_version < 90000
+      raise GenerationError, "of can only be used in conjunction with nowrap on postgres 9.1 and greater" if options[:nowrap] && options[:of] && db_version < 91000
 
       sql = ''
 
@@ -410,7 +446,7 @@ $$ LANGUAGE plpgsql#{security ? " SECURITY #{security.to_s.upcase}" : ""};
       end
 
       [sql, <<-SQL]
-CREATE TRIGGER #{prepared_name} #{options[:timing]} #{options[:events].join(" OR ")} ON #{options[:table]}
+CREATE TRIGGER #{prepared_name} #{options[:timing]} #{options[:events].join(" OR ")} #{of_clause}ON #{options[:table]}
 FOR EACH #{options[:for_each]}#{prepared_where && db_version >= 90000 ? " WHEN (" + prepared_where + ')': ''} EXECUTE PROCEDURE #{trigger_action};
       SQL
     end
