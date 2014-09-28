@@ -46,7 +46,7 @@ describe "schema dumping" do
       end
     end
 
-    context "without schema.rb" do
+    context "with schema.rb" do
       before do
         ActiveRecord::SchemaDumper.previous_schema = dump_schema
       end
