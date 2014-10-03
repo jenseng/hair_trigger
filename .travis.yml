@@ -30,3 +30,4 @@ matrix:
     - rvm: 2.1.0
       gemfile: gemfiles/Gemfile.activerecord-2.3.x
       env: DB_CONFIG=travis
+bundler_args: --without development
