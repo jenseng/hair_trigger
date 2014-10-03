@@ -5,6 +5,7 @@
 ### 0.2.11
 
 * fix model migrations with `of`, `for_each` and `declare` ([#36](https://github.com/jenseng/hair_trigger/issues/36))
+* clarify docs re: NOTICE ([#35](https://github.com/jenseng/hair_trigger/issues/35))
 
 ### 0.2.10
 
