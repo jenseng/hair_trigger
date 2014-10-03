@@ -184,6 +184,24 @@ describe "builder" do
         builder.on(:foos).after(:truncate){ "FOO" }.generate
       }.should raise_error
     end
+
+    describe "#to_ruby" do
+      it "should fully represent the builder" do
+        code = <<-CODE.strip.gsub(/^ +/, '')
+          on("foos").
+          security(:definer).
+          for_each(:row).
+          before(:update) do |t|
+            t.where("NEW.foo") do
+              "FOO;"
+            end
+          end
+        CODE
+        b = builder
+        b.instance_eval(code)
+        b.to_ruby.strip.gsub(/^ +/, '').should be_include(code)
+      end
+    end
   end
 
   context "postgresql" do
@@ -308,6 +326,25 @@ describe "builder" do
           should include("IF NEW.bar <> OLD.bar OR (NEW.bar IS NULL) <> (OLD.bar IS NULL) THEN")
       end
     end
+
+    describe "#to_ruby" do
+      it "should fully represent the builder" do
+        code = <<-CODE.strip.gsub(/^ +/, '')
+          on("foos").
+          of("bar").
+          security(:invoker).
+          for_each(:row).
+          before(:update) do |t|
+            t.where("NEW.foo").declare("row RECORD") do
+              "FOO;"
+            end
+          end
+        CODE
+        b = builder
+        b.instance_eval(code)
+        b.to_ruby.strip.gsub(/^ +/, '').should be_include(code)
+      end
+    end
   end
 
   context "sqlite" do
@@ -370,6 +407,23 @@ describe "builder" do
       lambda {
         builder.on(:foos).after(:truncate){ "FOO" }.generate
       }.should raise_error
+    end
+
+    describe "#to_ruby" do
+      it "should fully represent the builder" do
+        code = <<-CODE.strip.gsub(/^ +/, '')
+          on("foos").
+          of("bar").
+          before(:update) do |t|
+            t.where("NEW.foo") do
+              "FOO;"
+            end
+          end
+        CODE
+        b = builder
+        b.instance_eval(code)
+        b.to_ruby.strip.gsub(/^ +/, '').should be_include(code)
+      end
     end
   end
 end

@@ -78,6 +78,7 @@ module HairTrigger
     end
 
     def of(*columns)
+      raise DeclarationError, "`of' requested, but no columns specified" unless columns.present?
       options[:of] = columns
     end
 
@@ -303,6 +304,12 @@ module HairTrigger
             "on(#{options[:table].inspect})"
           when :where
             "where(#{prepared_where.inspect})"
+          when :of
+            "of(#{options[:of].inspect[1..-2]})"
+          when :for_each
+            "for_each(#{options[:for_each].downcase.to_sym.inspect})"
+          when :declare
+            "declare(#{options[:declarations].inspect})"
           else
             "#{c}(#{options[c].inspect})"
         end
