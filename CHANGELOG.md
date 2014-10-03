@@ -2,6 +2,10 @@
 
 ## 0.2.x
 
+### 0.2.11
+
+* fix model migrations with `of`, `for_each` and `declare` ([#36](https://github.com/jenseng/hair_trigger/issues/36))
+
 ### 0.2.10
 
 * `of` shorthand for column updates ([#32](https://github.com/jenseng/hair_trigger/issues/32))
