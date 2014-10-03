@@ -276,6 +276,22 @@ User.triggers.each(&:validate!)
 HairTrigger does not validate your SQL, so be sure to test it in all databases
 you want to support.
 
+### PostgreSQL NOTICEs
+
+When running a trigger migration, you might notice some PostgreSQL
+NOTICEs like so:
+
+```
+NOTICE:  trigger "foo_bar_baz" for table "quux" does not exist, skipping
+NOTICE:  function foo_bar_baz() does not exist, skipping
+```
+
+This happens because HairTrigger will attempt to drop the existing
+trigger/function if it already exists. These notices are safe to
+ignore. Note that this behavior [may change](https://github.com/jenseng/hair_trigger/issues/28)
+in a future release, meaning you'll first need to explicitly drop the
+existing trigger if you wish to redefine it.
+
 ## Gotchas
 
 * As is the case with ActiveRecord::Base.update_all or any direct SQL you do,
@@ -301,7 +317,7 @@ you want to support.
 
 * Ruby 1.8.7+
 * Rails 2.3+
-* Postgres 8.0+
+* PostgreSQL 8.0+
 * MySQL 5.0.10+
 * SQLite 3.3.8+
 
