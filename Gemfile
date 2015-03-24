@@ -3,7 +3,7 @@ source "http://rubygems.org"
 gemspec
 
 group :development do
-  gem 'debugger'
+  gem 'debugger', platforms: [:ruby_18, :ruby_19]
 end
 
 group :test do
