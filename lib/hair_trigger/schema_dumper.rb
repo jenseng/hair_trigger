@@ -13,8 +13,10 @@ module HairTrigger
       @connection = ActiveRecord::Base.connection
       @adapter_name = @connection.adapter_name.downcase.to_sym
 
-      db_triggers = @connection.triggers; nil
+      all_triggers = @connection.triggers
       db_trigger_warnings = {}
+
+      db_triggers = whitelist_triggers(all_triggers)
 
       migration_triggers = HairTrigger.current_migrations(:in_rake_task => true, :previous_schema => self.class.previous_schema).map do |(name, builder)|
         definitions = []
@@ -77,6 +79,12 @@ module HairTrigger
         end
       end
       definition
+    end
+
+    def whitelist_triggers(triggers)
+      triggers.reject do |name, source|
+        ActiveRecord::SchemaDumper.ignore_tables.any? { |ignored_table_name| source =~ /ON\s+#{ignored_table_name}\s/ }
+      end
     end
 
     def self.included(base)

@@ -44,6 +44,26 @@ describe "schema dumping" do
         schema_rb.should match(/bob_count \+ 1/)
         schema_rb.should_not match(/bob_count \+ 2/)
       end
+
+      it 'should take in consideration active record schema dumper ignore_tables option with regexp' do
+        ActiveRecord::SchemaDumper.ignore_tables = [/users/]
+
+        dump_schema.should_not match(/create_trigger/)
+      end
+
+      it 'should take in consideration active record schema dumper ignore_tables option with string' do
+        ActiveRecord::SchemaDumper.ignore_tables = ['users']
+
+        dump_schema.should_not match(/create_trigger/)
+      end
+
+      it 'should take in consideration active record schema dumper ignore_tables option with partial string' do
+        ActiveRecord::SchemaDumper.ignore_tables = ['user']
+
+        dump_schema.should match(/create_trigger/)
+      end
+
+
     end
 
     context "with schema.rb" do
@@ -79,6 +99,26 @@ describe "schema dumping" do
         schema_rb.should match(/bob_count \+ 1/)
         schema_rb.should_not match(/bob_count \+ 2/)
       end
+
+      it 'should take in consideration active record schema dumper ignore_tables option with regexp' do
+        ActiveRecord::SchemaDumper.ignore_tables = [/users/]
+
+        dump_schema.should_not match(/create_trigger/)
+      end
+
+      it 'should take in consideration active record schema dumper ignore_tables option with string' do
+        ActiveRecord::SchemaDumper.ignore_tables = ['users']
+
+        dump_schema.should_not match(/create_trigger/)
+      end
+
+      it 'should take in consideration active record schema dumper ignore_tables option with partial string' do
+        ActiveRecord::SchemaDumper.ignore_tables = ['user']
+
+        dump_schema.should match(/create_trigger/)
+      end
+
     end
+
   end
 end
