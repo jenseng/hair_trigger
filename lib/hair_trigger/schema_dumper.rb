@@ -1,5 +1,6 @@
 module HairTrigger
   module SchemaDumper
+
     def trailer_with_triggers(stream)
       orig_show_warnings = Builder.show_warnings
       Builder.show_warnings = false # we already show them when running the migration
@@ -15,10 +16,11 @@ module HairTrigger
 
       all_triggers = @connection.triggers
       db_trigger_warnings = {}
+      migration_trigger_builders = []
 
       db_triggers = whitelist_triggers(all_triggers)
 
-      migration_triggers = HairTrigger.current_migrations(:in_rake_task => true, :previous_schema => self.class.previous_schema).map do |(name, builder)|
+      migration_triggers = HairTrigger.current_migrations(:in_rake_task => true, :previous_schema => self.class.previous_schema).map do |(_, builder)|
         definitions = []
         builder.generate.each do |statement|
           if statement =~ /\ACREATE(.*TRIGGER| FUNCTION) ([^ \n]+)/
@@ -32,12 +34,13 @@ module HairTrigger
         next unless migration[:definitions].all? do |(name, definition, type)|
           db_triggers[name] && (db_trigger_warnings[name] = true) && db_triggers[name] == normalize_trigger(name, definition, type)
         end
-        migration[:definitions].each do |(name, trigger, type)|
+
+        migration[:definitions].each do |(name, _, _)|
           db_triggers.delete(name)
           db_trigger_warnings.delete(name)
         end
 
-        stream.print migration[:builder].to_ruby('  ', false) + "\n\n"
+        migration_trigger_builders << migration[:builder]
       end
 
       db_triggers.to_a.sort_by{ |t| (t.first + 'a').sub(/\(/, '_') }.each do |(name, definition)|
@@ -53,6 +56,8 @@ module HairTrigger
           stream.print "  execute(#{definition.inspect})\n\n"
         end
       end
+
+      migration_trigger_builders.each { |builder| stream.print builder.to_ruby('  ', false) + "\n\n" }
     end
 
     def normalize_trigger(name, definition, type)
