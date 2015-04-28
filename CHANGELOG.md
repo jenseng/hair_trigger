@@ -2,6 +2,10 @@
 
 ## 0.2.x
 
+### 0.2.13
+* fix long migration name issue ([#42](https://github.com/jenseng/hair_trigger/issues/42))
+* always quote table names ([#41](https://github.com/jenseng/hair_trigger/issues/41))
+
 ### 0.2.12
 
 * fix dependencies to reduce conflicts with other gems
