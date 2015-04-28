@@ -157,21 +157,35 @@ end
     end
 
     def infer_migration_name(migration_names, create_triggers, drop_triggers)
-      migration_base_name = if create_triggers.size > 0
-        ("create trigger#{create_triggers.size > 1 ? 's' : ''} " +
-         create_triggers.map{ |t| [t.options[:table], t.options[:events].join(" ")].join(" ") }.join(" and ")
-        ).downcase.gsub(/[^a-z0-9_]/, '_').gsub(/_+/, '_').camelize
+      if create_triggers.size > 0
+        migration_base_name = "create trigger#{create_triggers.size > 1 ? 's' : ''} "
+        name_parts = create_triggers.map { |t| [t.options[:table], t.options[:events].join(" ")].join(" ") }.uniq
+        part_limit = 4
       else
-        ("drop trigger#{drop_triggers.size > 1 ? 's' : ''} " +
-         drop_triggers.map{ |t| t.options[:table] }.join(" and ")
-        ).downcase.gsub(/[^a-z0-9_]/, '_').gsub(/_+/, '_').camelize
+        migration_base_name = "drop trigger#{drop_triggers.size > 1 ? 's' : ''} "
+        name_parts = drop_triggers.map { |t| t.options[:table] }
+        part_limit = 6
       end
+
+      # don't migration names get too ridiculous
+      if name_parts.size > part_limit
+        migration_base_name << " multiple tables"
+      else
+        migration_base_name << name_parts.join(" OR ")
+      end
+
+      migration_base_name = migration_base_name.
+        downcase.
+        gsub(/[^a-z0-9_]/, '_').
+        gsub(/_+/, '_').
+        camelize
 
       name_version = nil
       while migration_names.include?("#{migration_base_name}#{name_version}")
         name_version = name_version.to_i + 1
       end
-      migration_name = "#{migration_base_name}#{name_version}"
+
+      "#{migration_base_name}#{name_version}"
     end
 
     def infer_migration_version(migration_name)
