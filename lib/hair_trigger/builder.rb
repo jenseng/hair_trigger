@@ -411,7 +411,7 @@ module HairTrigger
 
     def generate_trigger_sqlite
       <<-SQL
-CREATE TRIGGER #{prepared_name} #{options[:timing]} #{options[:events].first} #{of_clause}ON #{options[:table]}
+CREATE TRIGGER #{prepared_name} #{options[:timing]} #{options[:events].first} #{of_clause}ON "#{options[:table]}"
 FOR EACH #{options[:for_each]}#{prepared_where ? " WHEN " + prepared_where : ''}
 BEGIN
 #{normalize(raw_actions, 1).rstrip}
@@ -464,7 +464,7 @@ $$ LANGUAGE plpgsql#{security ? " SECURITY #{security.to_s.upcase}" : ""};
       end
 
       [sql, <<-SQL]
-CREATE TRIGGER #{prepared_name} #{options[:timing]} #{options[:events].join(" OR ")} #{of_clause}ON #{options[:table]}
+CREATE TRIGGER #{prepared_name} #{options[:timing]} #{options[:events].join(" OR ")} #{of_clause}ON "#{options[:table]}"
 FOR EACH #{options[:for_each]}#{prepared_where && db_version >= 90000 ? " WHEN (" + prepared_where + ')': ''} EXECUTE PROCEDURE #{trigger_action};
       SQL
     end
@@ -472,7 +472,7 @@ FOR EACH #{options[:for_each]}#{prepared_where && db_version >= 90000 ? " WHEN (
     def generate_trigger_mysql
       security = options[:security] if options[:security] && options[:security] != :definer
       sql = <<-SQL
-CREATE #{security ? "DEFINER = #{security} " : ""}TRIGGER #{prepared_name} #{options[:timing]} #{options[:events].first} ON #{options[:table]}
+CREATE #{security ? "DEFINER = #{security} " : ""}TRIGGER #{prepared_name} #{options[:timing]} #{options[:events].first} ON `#{options[:table]}`
 FOR EACH #{options[:for_each]}
 BEGIN
       SQL

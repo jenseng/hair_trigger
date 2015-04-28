@@ -31,6 +31,18 @@ describe "adapter" do
 
         expect(db_triggers).to eq(triggers)
       end
+
+      it "quotes table names" do
+        conn.execute <<-SQL
+          CREATE TRIGGER foos_tr AFTER DELETE ON users
+          FOR EACH ROW
+          BEGIN
+            UPDATE groups SET bob_count = bob_count - 1;
+          END
+        SQL
+
+        expect(conn.triggers["foos_tr"]).to match(/CREATE TRIGGER foos_tr AFTER DELETE ON `users`/)
+      end
     end
 
     context "mysql" do
@@ -41,6 +53,42 @@ describe "adapter" do
     context "mysql2" do
       let(:adapter) { :mysql2 }
       it_behaves_like "mysql"
+    end
+
+    context "postgresql" do
+      let(:adapter) { :postgresql }
+
+      it "quotes table names" do
+        conn.execute <<-SQL
+          CREATE FUNCTION foos_tr()
+          RETURNS TRIGGER AS $$
+          BEGIN
+            UPDATE groups SET bob_count = bob_count - 1;
+          END;
+          $$ LANGUAGE plpgsql;
+
+          CREATE TRIGGER foos_tr AFTER DELETE ON users
+          FOR EACH ROW EXECUTE PROCEDURE foos_tr();
+        SQL
+
+        expect(conn.triggers["foos_tr"]).to match(/CREATE TRIGGER foos_tr AFTER DELETE ON "users"/)
+      end
+    end
+
+    context "sqlite3" do
+      let(:adapter) { :sqlite3 }
+
+      it "quotes table names" do
+        conn.execute <<-SQL
+          CREATE TRIGGER foos_tr AFTER DELETE ON users
+          FOR EACH ROW
+          BEGIN
+            UPDATE groups SET bob_count = bob_count - 1;
+          END;
+        SQL
+
+        expect(conn.triggers["foos_tr"]).to match(/CREATE TRIGGER foos_tr AFTER DELETE ON "users"/)
+      end
     end
   end
 end

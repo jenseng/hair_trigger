@@ -29,14 +29,14 @@ module HairTrigger
       case adapter_name
         when :sqlite
           select_rows("SELECT name, sql FROM sqlite_master WHERE type = 'trigger' #{name_clause ? " AND name " + name_clause : ""}").each do |(name, definition)|
-            triggers[name] = definition + ";\n"
+            triggers[name] = quote_table_name_in_trigger(definition) + ";\n"
           end
         when :mysql
           select_rows("SHOW TRIGGERS").each do |(name, event, table, actions, timing, created, sql_mode, definer)|
             definer = normalize_mysql_definer(definer)
             next if options[:only] && !options[:only].include?(name)
             triggers[name.strip] = <<-SQL
-CREATE #{definer != implicit_mysql_definer ? "DEFINER = #{definer} " : ""}TRIGGER #{name} #{timing} #{event} ON #{table}
+CREATE #{definer != implicit_mysql_definer ? "DEFINER = #{definer} " : ""}TRIGGER #{name} #{timing} #{event} ON `#{table}`
 FOR EACH ROW
 #{actions}
             SQL
@@ -52,7 +52,7 @@ FOR EACH ROW
               )
             )
           SQL
-          function_conditions = 
+
           sql = <<-SQL
             SELECT tgname::varchar, pg_get_triggerdef(oid, true)
             FROM pg_trigger
@@ -68,12 +68,31 @@ FOR EACH ROW
               #{name_clause ? " AND (proname || '()')::varchar " + name_clause : ""}
           SQL
           select_rows(sql).each do |(name, definition)|
-            triggers[name] = definition
+            triggers[name] = quote_table_name_in_trigger(definition)
           end
         else
           raise "don't know how to retrieve #{adapter_name} triggers yet"
       end
       triggers
+    end
+
+    # a bit hacky, but we need to ensure the table name is always quoted
+    # on the way out, not just for reserved words. this is because we
+    # always quote on the way in, so we need them to match exactly
+    # when diffing
+    def quote_table_name_in_trigger(definition)
+      pattern = /
+        (
+          CREATE\sTRIGGER\s+
+          \S+\s+
+          (BEFORE|AFTER|INSTEAD\s+OF)\s+
+          (INSERT|UPDATE|DELETE|TRUNCATE)\s+
+          (OR\s+(INSERT|UPDATE|DELETE|TRUNCATE)\s+)*
+          (ON\s+)
+        )
+        (\w+) # quote if not already quoted
+      /ixm
+      definition.sub(pattern, '\\1"\\7"')
     end
   end
 end
