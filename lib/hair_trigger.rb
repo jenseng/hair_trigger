@@ -167,7 +167,7 @@ end
         part_limit = 6
       end
 
-      # don't migration names get too ridiculous
+      # don't let migration names get too ridiculous
       if name_parts.size > part_limit
         migration_base_name << " multiple tables"
       else
