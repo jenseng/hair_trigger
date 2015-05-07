@@ -11,7 +11,6 @@ module HairTrigger
     end
 
     def triggers(stream)
-      @connection = ActiveRecord::Base.connection
       @adapter_name = @connection.adapter_name.downcase.to_sym
 
       all_triggers = @connection.triggers
@@ -61,7 +60,6 @@ module HairTrigger
     end
 
     def normalize_trigger(name, definition, type)
-      @connection = ActiveRecord::Base.connection
       @adapter_name = @connection.adapter_name.downcase.to_sym
 
       return definition unless @adapter_name == :postgresql
