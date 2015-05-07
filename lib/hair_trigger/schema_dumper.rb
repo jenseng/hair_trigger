@@ -88,7 +88,7 @@ module HairTrigger
 
     def whitelist_triggers(triggers)
       triggers.reject do |name, source|
-        ActiveRecord::SchemaDumper.ignore_tables.any? { |ignored_table_name| source =~ /ON\s+#{ignored_table_name}\s/ }
+        ActiveRecord::SchemaDumper.ignore_tables.any? { |ignored_table_name| source =~ /ON\s+#{@connection.quote_table_name(ignored_table_name)}\s/ }
       end
     end
 
