@@ -2,7 +2,13 @@
 
 ## 0.2.x
 
+### 0.2.14
+
+* respect ActiveRecord::SchemaDumper.ignore_tables ([PR #39](https://github.com/jenseng/hair_trigger/pull/39))
+* ensure PG functions are created before triggers in schema.rb ([PR #39](https://github.com/jenseng/hair_trigger/pull/39))
+
 ### 0.2.13
+
 * fix long migration name issue ([#42](https://github.com/jenseng/hair_trigger/issues/42))
 * always quote table names ([#41](https://github.com/jenseng/hair_trigger/issues/41))
 
