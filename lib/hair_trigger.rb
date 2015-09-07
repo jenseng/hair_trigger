@@ -1,4 +1,5 @@
 require 'ostruct'
+require 'active_record'
 require 'hair_trigger/base'
 require 'hair_trigger/migrator'
 require 'hair_trigger/adapter'
