@@ -1,13 +1,15 @@
 require 'ostruct'
 require 'hair_trigger/base'
-require 'hair_trigger/builder'
-require 'hair_trigger/migration_reader'
 require 'hair_trigger/migrator'
 require 'hair_trigger/adapter'
 require 'hair_trigger/schema_dumper'
 require 'hair_trigger/railtie' if defined?(Rails::Railtie)
 
 module HairTrigger
+
+  autoload :Builder, 'hair_trigger/builder'
+  autoload :MigrationReader, 'hair_trigger/migration_reader'
+
   class << self
     attr_writer :model_path, :schema_rb_path, :migration_path
 
