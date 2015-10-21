@@ -10,6 +10,10 @@ class MockAdapter
       instance_eval("def #{key}; #{value.inspect}; end")
     end
   end
+
+  def quote_table_name(table)
+    table
+  end
 end
 
 def builder(name = nil)

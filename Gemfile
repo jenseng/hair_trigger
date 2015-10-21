@@ -4,8 +4,8 @@ gemspec
 
 group :development do
   gem 'appraisal'
-  gem 'debugger', platforms: [:ruby_19]
-  gem 'byebug', platforms: [:ruby_20, :ruby_21]
+  gem 'debugger', platforms: [:mri_19]
+  gem 'byebug', platforms: [:mri_20, :mri_21, :mri_22]
 end
 
 group :test do

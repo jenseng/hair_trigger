@@ -23,7 +23,11 @@ module HairTrigger
         definitions = []
         builder.generate.each do |statement|
           if statement =~ /\ACREATE(.*TRIGGER| FUNCTION) ([^ \n]+)/
-            definitions << [$2, statement, $1 == ' FUNCTION' ? :function : :trigger]
+            # poor man's unquote
+            type = ($1 == ' FUNCTION' ? :function : :trigger)
+            name = $2.gsub('"', '')
+
+            definitions << [name, statement, type]
           end
         end
         {:builder => builder, :definitions => definitions}
@@ -63,23 +67,24 @@ module HairTrigger
       @adapter_name = @connection.adapter_name.downcase.to_sym
 
       return definition unless @adapter_name == :postgresql
-      begin
-        # because postgres does not preserve the original CREATE TRIGGER/
-        # FUNCTION statements, its decompiled reconstruction will not match
-        # ours. we work around it by creating our generated trigger/function,
-        # asking postgres for its definition, and then rolling back.
-        begin
-          @connection.transaction do
-            chars = ('a'..'z').to_a + ('0'..'9').to_a + ['_']
-            test_name = '_hair_trigger_test_' + (0..43).map{ chars[(rand * chars.size).to_i] }.join
-            test_name << (type == :function ? '()' : '')
-            @connection.execute(definition.sub(name, test_name))
-            definition = @connection.triggers(:only => [test_name], :simple_check => true).values.first
-            definition.sub!(test_name, name)
-            raise
-          end
-        rescue
+      # because postgres does not preserve the original CREATE TRIGGER/
+      # FUNCTION statements, its decompiled reconstruction will not match
+      # ours. we work around it by creating our generated trigger/function,
+      # asking postgres for its definition, and then rolling back.
+      @connection.transaction(requires_new: true) do
+        chars = ('a'..'z').to_a + ('0'..'9').to_a + ['_']
+        test_name = '_hair_trigger_test_' + (0..43).map{ chars[(rand * chars.size).to_i] }.join
+        # take of the parens for gsubbing, since this version might be quoted
+        name = name[0..-3] if type == :function
+        @connection.execute(definition.sub(name, test_name))
+        # now add them back
+        if type == :function
+          test_name << '()'
+          name << '()'
         end
+        definition = @connection.triggers(:only => [test_name], :simple_check => true).values.first
+        definition.sub!(test_name, name)
+        raise ActiveRecord::Rollback
       end
       definition
     end

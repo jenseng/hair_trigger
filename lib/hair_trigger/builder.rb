@@ -403,7 +403,7 @@ module HairTrigger
         when :sqlite, :mysql
           "DROP TRIGGER IF EXISTS #{prepared_name};\n"
         when :postgresql, :postgis
-          "DROP TRIGGER IF EXISTS #{prepared_name} ON #{options[:table]};\nDROP FUNCTION IF EXISTS #{prepared_name}();\n"
+          "DROP TRIGGER IF EXISTS #{prepared_name} ON #{adapter.quote_table_name(options[:table])};\nDROP FUNCTION IF EXISTS #{adapter.quote_table_name(prepared_name)}();\n"
         else
           raise GenerationError, "don't know how to drop #{adapter_name} triggers yet"
       end
@@ -434,7 +434,7 @@ END;
       else
         security = options[:security] if options[:security] && options[:security] != :invoker
         sql << <<-SQL
-CREATE FUNCTION #{prepared_name}()
+CREATE FUNCTION #{adapter.quote_table_name(prepared_name)}()
 RETURNS TRIGGER AS $$#{declarations}
 BEGIN
         SQL
@@ -460,11 +460,11 @@ END;
 $$ LANGUAGE plpgsql#{security ? " SECURITY #{security.to_s.upcase}" : ""};
         SQL
 
-        trigger_action = "#{prepared_name}()"
+        trigger_action = "#{adapter.quote_table_name(prepared_name)}()"
       end
 
       [sql, <<-SQL]
-CREATE TRIGGER #{prepared_name} #{options[:timing]} #{options[:events].join(" OR ")} #{of_clause}ON "#{options[:table]}"
+CREATE TRIGGER #{prepared_name} #{options[:timing]} #{options[:events].join(" OR ")} #{of_clause}ON #{adapter.quote_table_name(options[:table])}
 FOR EACH #{options[:for_each]}#{prepared_where && db_version >= 90000 ? " WHEN (" + prepared_where + ')': ''} EXECUTE PROCEDURE #{trigger_action};
       SQL
     end
