@@ -2,6 +2,10 @@
 
 ## 0.2.x
 
+### 0.2.15
+
+* better quoting for postgres
+
 ### 0.2.14
 
 * respect ActiveRecord::SchemaDumper.ignore_tables ([PR #39](https://github.com/jenseng/hair_trigger/pull/39))
