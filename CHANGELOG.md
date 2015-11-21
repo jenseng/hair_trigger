@@ -2,6 +2,10 @@
 
 ## 0.2.x
 
+### 0.2.16
+
+* lazy load dependencies for better memory usage
+ 
 ### 0.2.15
 
 * better quoting for postgres
