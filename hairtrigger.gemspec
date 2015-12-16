@@ -21,6 +21,6 @@ Gem::Specification.new do |s|
   s.files = %w(LICENSE.txt Rakefile README.md) + Dir['lib/**/*.rb'] + Dir['lib/**/*.rake'] + Dir['spec/**/*.rb']
 
   s.add_dependency 'activerecord', '>= 2.3'
-  s.add_dependency 'ruby_parser', '~> 3.5'
+  s.add_dependency 'ruby_parser', '~> 3.7'
   s.add_dependency 'ruby2ruby', '~> 2.0'
 end
