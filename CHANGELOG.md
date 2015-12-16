@@ -2,10 +2,14 @@
 
 ## 0.2.x
 
+### 0.2.17
+
+* ruby_parser bump for ruby 2.2. support ([#40](https://github.com/jenseng/hair_trigger/issues/40))
+
 ### 0.2.16
 
 * lazy load dependencies for better memory usage
- 
+
 ### 0.2.15
 
 * better quoting for postgres
