@@ -1,5 +1,5 @@
 # HairTrigger
-[<img src="https://secure.travis-ci.org/jenseng/hair_trigger.png?branch=master" />](http://travis-ci.org/jenseng/hair_trigger)
+[<img src="https://secure.travis-ci.org/jenseng/hair_trigger.svg?branch=master" />](http://travis-ci.org/jenseng/hair_trigger)
 
 HairTrigger lets you create and manage database triggers in a concise,
 db-agnostic, Rails-y way. You declare triggers right in your models in Ruby,
@@ -106,7 +106,7 @@ Example: `trigger.after(:update).nowrap { "tsvector_update_trigger(...)" }`
 
 #### declare
 PostgreSQL-specific option for declaring variables for use in the
-trigger function. Declarations should be separate by semicolons, e.g.
+trigger function. Declarations should be separated by semicolons, e.g.
 
 ```ruby
 trigger.after(:insert).declare("user_type text; status text") do
@@ -197,22 +197,22 @@ rolling back.
 
 #### Manual triggers and :compatibility
 
-As bugs are fixed and features are implemented in hairtrigger, it's possible
+As bugs are fixed and features are implemented in HairTrigger, it's possible
 that the generated trigger SQL will change (this has only happened once so
-far). If you upgrade to a newer version of hairtrigger, it needs a way of
+far). If you upgrade to a newer version of HairTrigger, it needs a way of
 knowing which previous version generated the original trigger. You only need
 to worry about this for manual trigger migrations, as the model ones
 automatically take care of this. For your manual triggers you can either:
 
 * pass `:compatibility => x` to your `create_trigger` statement, where x is
-  whatever HairTrigger::Builder.compatiblity is (1 for this version).
+  whatever HairTrigger::Builder.compatibility is (1 for this version).
 * set `HairTrigger::Builder.base_compatibility = x` in an initializer, where
-  x is whatever HairTrigger::Builder.compatiblity is. This is like doing the
+  x is whatever HairTrigger::Builder.compatibility is. This is like doing the
   first option on every `create_trigger`. Note that once the compatibility
   changes, you'll need to set `:compatibility` on new triggers (unless you
   just redo all your triggers and bump the `base_compatibility`).
 
-If you upgrade to a newer version of hairtrigger and see that the SQL
+If you upgrade to a newer version of HairTrigger and see that the SQL
 compatibility has changed, you'll need to set the appropriate compatibility
 on any new triggers that you create.
 
@@ -231,7 +231,7 @@ make it trigger-aware. A newly generated schema.rb will contain:
 As long as you don't delete old migrations and schema.rb prior to running
 `rake db:schema:dump`, the result should be what you expect (and portable).
 If you have deleted all trigger migrations, you can regenerate a new
-baseline for model triggers via rake db:generate_trigger_migration.
+baseline for model triggers via `rake db:generate_trigger_migration`.
 
 ## Testing
 
@@ -262,7 +262,7 @@ when you attempt to run the migration.
 
 Generation warnings are similar but they don't stop the trigger from being
 generated. If you do something adapter-specific supported by your database,
-you will still get a warning ($stderr) that your trigger is not portable. You
+you will still get a warning (to $stderr) that your trigger is not portable. You
 can silence warnings via `HairTrigger::Builder.show_warnings = false`
 
 You can validate your triggers beforehand using the `Builder#validate!` method.
@@ -294,7 +294,7 @@ existing trigger if you wish to redefine it.
 
 ## Gotchas
 
-* As is the case with ActiveRecord::Base.update_all or any direct SQL you do,
+* As is the case with `ActiveRecord::Base.update_all` or any direct SQL you do,
   be careful to reload updated objects from the database. For example, the
   following code will display the wrong count since we aren't reloading the
   account:
