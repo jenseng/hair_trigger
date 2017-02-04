@@ -48,12 +48,12 @@ describe "adapter" do
     context "mysql" do
       let(:adapter) { :mysql }
       it_behaves_like "mysql"
-    end
+    end if ADAPTERS.include? :mysql
 
     context "mysql2" do
       let(:adapter) { :mysql2 }
       it_behaves_like "mysql"
-    end
+    end if ADAPTERS.include? :mysql2
 
     context "postgresql" do
       let(:adapter) { :postgresql }

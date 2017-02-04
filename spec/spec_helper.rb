@@ -5,11 +5,13 @@ require 'hair_trigger'
 require 'yaml'
 
 CONFIGS = YAML.load_file(File.expand_path(File.dirname(__FILE__) + '/../database.yml'))[ENV["DB_CONFIG"] || "test"]
-ADAPTERS = [:mysql, :mysql2, :postgresql, :sqlite3]
+ADAPTERS = [:mysql2, :postgresql, :sqlite3]
+ADAPTERS.unshift :mysql if ActiveRecord::VERSION::STRING < "5"
 
 def each_adapter
   require 'active_record/connection_adapters/postgresql_adapter'
-  require 'active_record/connection_adapters/mysql_adapter'
+  require 'active_record/connection_adapters/mysql_adapter' if ADAPTERS.include? :mysql
+  require 'active_record/connection_adapters/mysql2_adapter'
   require 'active_record/connection_adapters/sqlite3_adapter'
   require 'mysql2'
 
@@ -54,7 +56,7 @@ shared_context "hairtrigger utils" do
     end
     # Arel has an issue in that it keeps using original connection for quoting,
     # etc. (which breaks stuff) unless you do this:
-    Arel::Visitors::ENGINE_VISITORS.delete(ActiveRecord::Base) if defined?(Arel)
+    Arel::Visitors::ENGINE_VISITORS.delete(ActiveRecord::Base) if defined?(Arel::Visitors::ENGINE_VISITORS)
     ActiveRecord::Base.establish_connection(config)
     ActiveRecord::Base.logger = Logger.new('/dev/null')
     ActiveRecord::SchemaDumper.previous_schema = nil
