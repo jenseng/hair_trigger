@@ -1,6 +1,18 @@
+
 # Changelog
 
 ## 0.2.x
+
+### 0.2.19
+
+* allow `of` for mysql ([PR #58](https://github.com/jenseng/hair_trigger/pull/58))
+* fix `all` dumping ([PR #57](https://github.com/jenseng/hair_trigger/pull/57))
+
+### 0.2.18
+
+* ruby_parser bump for ruby 2.3
+* fix tests for rails 5
+* doc fixes ([PR #55](https://github.com/jenseng/hair_trigger/pull/55)
 
 ### 0.2.17
 
