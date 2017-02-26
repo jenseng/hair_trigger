@@ -310,6 +310,8 @@ module HairTrigger
             "for_each(#{options[:for_each].downcase.to_sym.inspect})"
           when :declare
             "declare(#{options[:declarations].inspect})"
+          when :all
+            'all'
           else
             "#{c}(#{options[c].inspect})"
         end
