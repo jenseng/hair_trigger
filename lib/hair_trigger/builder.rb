@@ -140,7 +140,7 @@ module HairTrigger
           def #{method}(*args)
             @chained_calls << :#{method}
             if @triggers || @trigger_group
-              @errors << ["mysql doesn't support #{method} within a trigger group", :mysql] unless [:name, :where, :all].include?(:#{method})
+              @errors << ["mysql doesn't support #{method} within a trigger group", :mysql] unless [:name, :where, :all, :of].include?(:#{method})
             end
             set_#{method}(*args, &(block_given? ? Proc.new : nil))
           end
