@@ -1,4 +1,4 @@
-class ManualUserTrigger < ActiveRecord::Migration[5.0]
+class ManualUserTrigger < ActiveRecord::Migration
   def up
     create_trigger(:compatibility => 1).
         on("users").

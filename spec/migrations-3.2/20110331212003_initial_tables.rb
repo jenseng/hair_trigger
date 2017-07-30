@@ -1,4 +1,4 @@
-class InitialTables < ActiveRecord::Migration[5.0]
+class InitialTables < ActiveRecord::Migration
   def up
     create_table "users" do |t|
       t.integer  "group_id"
