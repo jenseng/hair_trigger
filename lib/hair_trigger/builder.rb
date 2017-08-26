@@ -427,7 +427,7 @@ END;
       raise GenerationError, "declare cannot be used in conjunction with nowrap" if options[:nowrap] && options[:declare]
       raise GenerationError, "security cannot be used in conjunction with nowrap" if options[:nowrap] && options[:security]
       raise GenerationError, "where can only be used in conjunction with nowrap on postgres 9.0 and greater" if options[:nowrap] && prepared_where && db_version < 90000
-      raise GenerationError, "of can only be used in conjunction with nowrap on postgres 9.1 and greater" if options[:nowrap] && options[:of] && db_version < 91000
+      raise GenerationError, "of can only be used in conjunction with nowrap on postgres 9.1 and greater" if options[:nowrap] && options[:of] && db_version < 90100
 
       sql = ''
 
