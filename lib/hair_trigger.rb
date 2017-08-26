@@ -1,4 +1,5 @@
 require 'ostruct'
+require 'fileutils'
 require 'active_record'
 require 'hair_trigger/base'
 require 'hair_trigger/migrator'
@@ -140,6 +141,7 @@ module HairTrigger
       migration_name = infer_migration_name(migration_names, up_create_triggers, up_drop_triggers)
       migration_version = infer_migration_version(migration_name)
       file_name = migration_path + '/' + migration_version + "_" + migration_name.underscore + ".rb"
+      FileUtils.mkdir_p migration_path
       prefix = ActiveRecord::VERSION::STRING < "3.1." ? "self." : ""
       File.open(file_name, "w"){ |f| f.write <<-MIGRATION }
 # This migration was auto-generated via `rake db:generate_trigger_migration'.
