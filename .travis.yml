@@ -8,11 +8,15 @@ gemfile:
   - gemfiles/activerecord_4.0.gemfile
   - gemfiles/activerecord_4.2.gemfile
   - gemfiles/activerecord_5.0.gemfile
+  - gemfiles/activerecord_5.1.gemfile
   - gemfiles/activerecord_edge.gemfile
 matrix:
   exclude:
     - rvm: 2.1.10
       gemfile: gemfiles/activerecord_5.0.gemfile
+      env: DB_CONFIG=travis
+    - rvm: 2.1.10
+      gemfile: gemfiles/activerecord_5.1.gemfile
       env: DB_CONFIG=travis
     - rvm: 2.1.10
       gemfile: gemfiles/activerecord_edge.gemfile
