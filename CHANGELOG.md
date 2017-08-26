@@ -3,6 +3,14 @@
 
 ## 0.2.x
 
+### 0.2.20
+
+* ruby_parser bump for ruby 2.4
+* rails 5.1 support ([PR #63](https://github.com/jenseng/hair_trigger/pull/63), [PR #64](https://github.com/jenseng/hair_trigger/pull/64))
+* fix postgres version check ([65](https://github.com/jenseng/hair_trigger/issues/65)))
+* fix for missing directory ([60](https://github.com/jenseng/hair_trigger/issues/60)))
+* remove deprecation warnings ([PR #59](https://github.com/jenseng/hair_trigger/pull/59))
+
 ### 0.2.19
 
 * allow `of` for mysql ([PR #58](https://github.com/jenseng/hair_trigger/pull/58))
