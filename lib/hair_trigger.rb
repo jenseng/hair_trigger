@@ -148,7 +148,7 @@ module HairTrigger
 # While you can edit this file, any changes you make to the definitions here
 # will be undone by the next auto-generated trigger migration.
 
-class #{migration_name} < ActiveRecord::Migration[#{[ActiveRecord::VERSION::MAJOR, ActiveRecord::VERSION::MINOR].join("."}]
+class #{migration_name} < ActiveRecord::Migration[#{[ActiveRecord::VERSION::MAJOR, ActiveRecord::VERSION::MINOR].join(".")}]
   def #{prefix}up
     #{(up_drop_triggers + up_create_triggers).map{ |t| t.to_ruby('    ') }.join("\n\n").lstrip}
   end
