@@ -3,8 +3,8 @@
 source "http://rubygems.org"
 
 gem "activerecord", "~> 4.2.0"
-gem "mysql", "~> 2.9.1"
-gem "mysql2", "~> 0.3.11"
+gem 'mysql', '~> 2.9'
+gem 'mysql2', '>= 0.3.13', '< 0.5'
 
 group :development do
   gem "appraisal"
@@ -14,8 +14,8 @@ end
 group :test do
   gem "rake", "~> 10.0"
   gem "rspec", "~> 2.14.0"
-  gem "pg", ">= 0.15.1"
-  gem "sqlite3", ">= 1.3.7"
+  gem 'pg', '~> 0.15'
+  gem "sqlite3", "~> 1.3.6"
 end
 
 gemspec :path => "../"
