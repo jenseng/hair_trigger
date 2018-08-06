@@ -41,9 +41,15 @@ module HairTrigger
     end
 
     def migrator
-      migrations = ActiveRecord::VERSION::STRING >= "4.0." ?
-        ActiveRecord::Migrator.migrations(migration_path) :
-        migration_path
+      version = ActiveRecord::VERSION::STRING
+      if version >= "5.2."
+        migrations = ActiveRecord::MigrationContext.new(migration_path).migrations
+      elsif version < "4.0."
+        migrations = migration_path
+      else # version >= "4.0."
+        migrations = ActiveRecord::Migrator.migrations(migration_path)
+      end
+
       ActiveRecord::Migrator.new(:up, migrations)
     end
 

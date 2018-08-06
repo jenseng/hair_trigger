@@ -1,5 +1,5 @@
 # HairTrigger
-[<img src="https://secure.travis-ci.org/jenseng/hair_trigger.svg?branch=master" />](http://travis-ci.org/jenseng/hair_trigger)
+[<img src="https://secure.travis-ci.org/toptal/hair_trigger.svg?branch=master" />](http://travis-ci.org/toptal/hair_trigger)
 
 HairTrigger lets you create and manage database triggers in a concise,
 db-agnostic, Rails-y way. You declare triggers right in your models in Ruby,
