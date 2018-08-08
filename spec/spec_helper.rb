@@ -60,8 +60,9 @@ shared_context "hairtrigger utils" do
         ret = `echo "drop database if exists #{config['database']}; create database #{config['database']};" | mysql -u #{config['username']}`
         raise "error creating database: #{ret}" unless $?.exitstatus == 0
       when :postgresql
-        `dropdb -U #{config['username']} #{config['database']} &>/dev/null`
-        ret = `createdb -U #{config['username']} #{config['database']} 2>&1`
+        user_arg = "-U #{config['username']}" if config['username']
+        `dropdb #{user_arg} #{config['database']} &>/dev/null`
+        ret = `createdb #{user_arg} #{config['database']} 2>&1`
         raise "error creating database: #{ret}" unless $?.exitstatus == 0
     end
     # Arel has an issue in that it keeps using original connection for quoting,
