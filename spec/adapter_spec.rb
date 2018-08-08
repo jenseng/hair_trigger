@@ -37,7 +37,7 @@ describe "adapter" do
           CREATE TRIGGER foos_tr AFTER DELETE ON users
           FOR EACH ROW
           BEGIN
-            UPDATE groups SET bob_count = bob_count - 1;
+            UPDATE user_groups SET bob_count = bob_count - 1;
           END
         SQL
 
@@ -63,7 +63,7 @@ describe "adapter" do
           CREATE FUNCTION foos_tr()
           RETURNS TRIGGER AS $$
           BEGIN
-            UPDATE groups SET bob_count = bob_count - 1;
+            UPDATE user_groups SET bob_count = bob_count - 1;
           END;
           $$ LANGUAGE plpgsql;
 
@@ -83,7 +83,7 @@ describe "adapter" do
           CREATE TRIGGER foos_tr AFTER DELETE ON users
           FOR EACH ROW
           BEGIN
-            UPDATE groups SET bob_count = bob_count - 1;
+            UPDATE user_groups SET bob_count = bob_count - 1;
           END;
         SQL
 
@@ -92,4 +92,3 @@ describe "adapter" do
     end
   end
 end
-

@@ -1,11 +1,11 @@
 class InitialTables < ActiveRecord::Migration
   def up
     create_table "users" do |t|
-      t.integer  "group_id"
+      t.integer  "user_group_id"
       t.string   "name"
     end
 
-    create_table "groups" do |t|
+    create_table "user_groups" do |t|
       t.integer  "bob_count", :default => 0
       t.integer  "updated_joe_count", :default => 0
     end
@@ -13,6 +13,6 @@ class InitialTables < ActiveRecord::Migration
 
   def down
     drop_table "users"
-    drop_table "groups"
+    drop_table "user_groups"
   end
 end

@@ -8,7 +8,7 @@ class UserTrigger < ActiveRecord::Migration[5.0]
         on("users").
         after(:insert).
         where("NEW.name = 'bob'") do
-      "UPDATE groups SET bob_count = bob_count + 1"
+      "UPDATE user_groups SET bob_count = bob_count + 1"
     end
   end
 

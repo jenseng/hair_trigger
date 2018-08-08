@@ -32,8 +32,8 @@ describe "schema dumping" do
       it "should not dump triggers in migrations that haven't run" do
         # edit our model trigger, generate a new migration
         replace_file_contents HairTrigger.model_path + '/user.rb',
-          '"UPDATE groups SET bob_count = bob_count + 1"',
-          '{:default => "UPDATE groups SET bob_count = bob_count + 2"}'
+          '"UPDATE user_groups SET bob_count = bob_count + 1"',
+          '{:default => "UPDATE user_groups SET bob_count = bob_count + 2"}'
         reset_models
 
         HairTrigger.should_not be_migrations_current
@@ -87,8 +87,8 @@ describe "schema dumping" do
       it "should evaluate all migrations even if they haven't run" do
         # edit our model trigger, generate a new migration
         replace_file_contents HairTrigger.model_path + '/user.rb',
-          '"UPDATE groups SET bob_count = bob_count + 1"',
-          '{:default => "UPDATE groups SET bob_count = bob_count + 2"}'
+          '"UPDATE user_groups SET bob_count = bob_count + 1"',
+          '{:default => "UPDATE user_groups SET bob_count = bob_count + 2"}'
         reset_models
 
         HairTrigger.should_not be_migrations_current
