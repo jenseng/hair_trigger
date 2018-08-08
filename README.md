@@ -325,4 +325,4 @@ existing trigger if you wish to redefine it.
 
 ## Copyright
 
-Copyright (c) 2011-2017 Jon Jensen. See LICENSE.txt for further details.
+Copyright (c) 2011-2018 Jon Jensen. See LICENSE.txt for further details.

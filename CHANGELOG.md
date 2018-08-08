@@ -3,6 +3,12 @@
 
 ## 0.2.x
 
+### 0.2.21
+
+* fix NoMethodError ([PR #72](https://github.com/jenseng/hair_trigger/pull/72))
+* correctly pin dependencies in tests ([PR #74](https://github.com/jenseng/hair_trigger/pull/74))
+* misc testing fixes (mysql 8.0.2+, easier local setup)
+
 ### 0.2.20
 
 * ruby_parser bump for ruby 2.4
