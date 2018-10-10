@@ -55,7 +55,7 @@ module HairTrigger
           stream.puts "  # no candidate create_trigger statement could be found, creating an adapter-specific one"
         end
         if definition =~ /\n/
-          stream.print "  execute(<<-TRIGGERSQL)\n#{definition.rstrip}\n  TRIGGERSQL\n\n"
+          stream.print "  execute(<<-SQL)\n#{definition.rstrip}\n  SQL\n\n"
         else
           stream.print "  execute(#{definition.inspect})\n\n"
         end
@@ -99,9 +99,8 @@ module HairTrigger
     def self.included(base)
       base.class_eval do
         prepend TrailerWithTriggersSupport
-        class << self
-          attr_accessor :previous_schema
-        end
+
+        class_attribute :previous_schema
       end
     end
   end
