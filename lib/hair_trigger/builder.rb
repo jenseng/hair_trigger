@@ -335,10 +335,11 @@ module HairTrigger
         block.call(self)
         raise DeclarationError, "trigger group did not define any triggers" if @triggers.empty?
       else
-        @actions = block.call
-        (@actions.is_a?(Hash) ? @actions.values : [@actions]).each do |actions|
-          actions.sub!(/(\s*)\z/, ';\1') if actions && actions !~ /;\s*\z/
-        end
+        @actions =
+          case (actions = block.call)
+          when Hash then actions.map { |key, action| [key, ensure_semicolon(action)] }.to_h
+          else ensure_semicolon(actions)
+          end
       end
       # only the top-most block actually executes
       if !@trigger_group
@@ -348,6 +349,10 @@ module HairTrigger
         end
       end
       self
+    end
+
+    def ensure_semicolon(action)
+      action && action !~ /;\s*\z/ ? action.sub(/(\s*)\z/, ';\1') : action
     end
 
     def validate_names!
