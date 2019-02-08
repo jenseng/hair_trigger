@@ -34,6 +34,13 @@ describe "builder" do
       builder.on(:foos).after(:update){ "FOO " }.generate.
         grep(/FOO;/).size.should eql(1)
     end
+
+    it "should work with frozen strings" do
+      @adapter = MockAdapter.new("mysql")
+      lambda {
+        builder.on(:foos).after(:update){ "FOO".freeze }.generate
+      }.should_not raise_error
+    end
   end
 
   context "comparison" do
