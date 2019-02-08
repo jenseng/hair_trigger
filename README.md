@@ -7,8 +7,15 @@ and a simple rake task does all the dirty work for you.
 
 ## Installation
 
-If you are using Rails 3 or beyond, just add `gem 'hairtrigger'` to your
-Gemfile. For Rails 2, it's [slightly more involved](RAILS2.md)
+HairTrigger works with Rails 5.0 onwards. Add the following line to your Gemfile:
+
+```ruby
+gem 'hairtrigger'
+```
+
+Then run `bundle install`
+
+For older versions of Rails check the last [0.2 release](https://github.com/jenseng/hair_trigger/tree/v0.2.21)
 
 ## Usage
 
@@ -248,7 +255,7 @@ create.
 
 ## Warnings and Errors
 
-There are a couple classes of errors: declaration errors and generation 
+There are a couple classes of errors: declaration errors and generation
 errors/warnings.
 
 Declaration errors happen if your trigger declaration is obviously wrong, and
@@ -315,8 +322,8 @@ existing trigger if you wish to redefine it.
 
 ## Compatibility
 
-* Ruby 1.8.7+
-* Rails 2.3+
+* Ruby 2.3.0+
+* Rails 5.0+
 * PostgreSQL 8.0+
 * MySQL 5.0.10+
 * SQLite 3.3.8+

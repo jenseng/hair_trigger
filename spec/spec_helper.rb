@@ -75,7 +75,11 @@ shared_context "hairtrigger utils" do
 
   def migrate_db
     ActiveRecord::Migration.verbose = false
-    ActiveRecord::Migrator.migrate(HairTrigger.migration_path)
+    if ActiveRecord::VERSION::STRING >= "5.2"
+      ActiveRecord::MigrationContext.new(HairTrigger.migration_path).migrate
+    else
+      ActiveRecord::Migrator.migrate(HairTrigger.migration_path)
+    end
   end
 
   def dump_schema

@@ -1,32 +1,21 @@
+sudo: false
 language: ruby
 env: DB_CONFIG=travis
 rvm:
-  - 2.1.10
-  - 2.3.3
+  - 2.3.8
+  - 2.4.5
+  - 2.5.3
 gemfile:
-  - gemfiles/activerecord_3.2.gemfile
-  - gemfiles/activerecord_4.0.gemfile
-  - gemfiles/activerecord_4.2.gemfile
   - gemfiles/activerecord_5.0.gemfile
   - gemfiles/activerecord_5.1.gemfile
+  - gemfiles/activerecord_5.2.gemfile
   - gemfiles/activerecord_edge.gemfile
 matrix:
   exclude:
-    - rvm: 2.1.10
-      gemfile: gemfiles/activerecord_5.0.gemfile
-      env: DB_CONFIG=travis
-    - rvm: 2.1.10
-      gemfile: gemfiles/activerecord_5.1.gemfile
-      env: DB_CONFIG=travis
-    - rvm: 2.1.10
-      gemfile: gemfiles/activerecord_edge.gemfile
-      env: DB_CONFIG=travis
-    - rvm: 2.3.3
-      gemfile: gemfiles/activerecord_edge.gemfile
-      env: DB_CONFIG=travis
+  - gemfile: gemfiles/activerecord_edge.gemfile
+    rvm: 2.3.7
   allow_failures:
     - gemfile: gemfiles/activerecord_edge.gemfile
 bundler_args: --without development
 before_install:
  - gem update bundler
-sudo: false
