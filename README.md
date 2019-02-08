@@ -320,6 +320,22 @@ existing trigger if you wish to redefine it.
 * Manual `create_trigger` statements have some gotchas. See the section
   "Manual triggers and :compatibility"
 
+## Contributing
+
+Contributions welcome! I don't write much Ruby these days 😢 (and haven't used this
+gem in years 😬) but am happy to take contributions. If I'm slow to respond, don't
+hesitate to @ me repeatedly, sometimes those github notifications slip through
+the cracks. 😆.
+
+If you want to add a feature/bugfix, you can rely on Travis to run the tests, but
+do also run them locally (especially if you are changing supported railses/etc).
+HairTrigger uses [appraisal](https://github.com/thoughtbot/appraisal) to manage all
+that w/ automagical gemfiles. So the tl;dr when testing locally is:
+
+1. make sure you have mysql and postgres installed (homebrew or whatever)
+2. `bundle exec appraisal install` -- get all the dependencies
+3. `bundle exec appraisal rake` -- run the specs every which way
+
 ## Compatibility
 
 * Ruby 2.3.0+
@@ -332,4 +348,4 @@ existing trigger if you wish to redefine it.
 
 ## Copyright
 
-Copyright (c) 2011-2018 Jon Jensen. See LICENSE.txt for further details.
+Copyright (c) 2011-2019 Jon Jensen. See LICENSE.txt for further details.
