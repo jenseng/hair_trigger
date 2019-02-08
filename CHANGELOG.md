@@ -3,6 +3,11 @@
 
 ## 0.2.x
 
+### 0.2.22
+
+* drop old rubies/railses ([PR #77](https://github.com/jenseng/hair_trigger/pull/77))
+* fix frozen string issue ([PR #78](https://github.com/jenseng/hair_trigger/pull/78))
+
 ### 0.2.21
 
 * fix NoMethodError ([PR #72](https://github.com/jenseng/hair_trigger/pull/72))
