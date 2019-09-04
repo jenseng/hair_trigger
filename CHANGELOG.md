@@ -3,6 +3,10 @@
 
 ## 0.2.x
 
+### 0.2.23
+
+* rails 6 support ([PR #83](https://github.com/jenseng/hair_trigger/pull/83))
+
 ### 0.2.22
 
 * drop old rubies/railses ([PR #77](https://github.com/jenseng/hair_trigger/pull/77))
