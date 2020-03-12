@@ -137,22 +137,22 @@ module HairTrigger
       methods.each do |method|
         class_eval <<-METHOD, __FILE__, __LINE__ + 1
           alias #{method}_orig #{method}
-          def #{method}(*args)
+          def #{method}(*args, &block)
             @chained_calls << :#{method}
             if @triggers || @trigger_group
               @errors << ["mysql doesn't support #{method} within a trigger group", :mysql] unless [:name, :where, :all, :of].include?(:#{method})
             end
-            set_#{method}(*args, &(block_given? ? Proc.new : nil))
+            set_#{method}(*args, &(block_given? ? block : nil))
           end
-          def set_#{method}(*args)
+          def set_#{method}(*args, &block)
             if @triggers # i.e. each time we say t.something within a trigger group block
               @chained_calls.pop # the subtrigger will get this, we don't need it
               @chained_calls = @chained_calls.uniq
               @triggers << trigger = clone
-              trigger.#{method}(*args, &(block_given? ? Proc.new : nil))
+              trigger.#{method}(*args, &(block_given? ? block : nil))
             else
-              #{method}_orig(*args)
-              maybe_execute(&Proc.new) if block_given?
+              #{method}_orig(*args, &block)
+              maybe_execute(&block) if block_given?
               self
             end
           end
