@@ -226,7 +226,9 @@ end
   end
 end
 
-ActiveRecord::Base.send :extend, HairTrigger::Base
-ActiveRecord::Migration.send :include, HairTrigger::Migrator
-ActiveRecord::ConnectionAdapters::AbstractAdapter.class_eval { include HairTrigger::Adapter }
-ActiveRecord::SchemaDumper.class_eval { include HairTrigger::SchemaDumper }
+ActiveSupport.on_load(:active_record) do
+  ActiveRecord::Base.send :extend, HairTrigger::Base
+  ActiveRecord::Migration.send :include, HairTrigger::Migrator
+  ActiveRecord::ConnectionAdapters::AbstractAdapter.class_eval { include HairTrigger::Adapter }
+  ActiveRecord::SchemaDumper.class_eval { include HairTrigger::SchemaDumper }
+end
