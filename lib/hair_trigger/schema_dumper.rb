@@ -67,7 +67,7 @@ module HairTrigger
     def normalize_trigger(name, definition, type)
       @adapter_name = @connection.adapter_name.downcase.to_sym
 
-      return definition unless @adapter_name == :postgresql
+      return definition unless @adapter_name == :postgresql || @adapter_name == :postgis
       # because postgres does not preserve the original CREATE TRIGGER/
       # FUNCTION statements, its decompiled reconstruction will not match
       # ours. we work around it by creating our generated trigger/function,
