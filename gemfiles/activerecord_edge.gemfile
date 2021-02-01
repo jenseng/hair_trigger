@@ -3,8 +3,8 @@
 source "https://rubygems.org"
 
 gem "arel", :github => "rails/arel"
-gem "activerecord", :github => "rails/rails"
-gem "mysql2", "~> 0.4.10"
+gem "activerecord", :github => "rails/rails", :branch => "main"
+gem "mysql2", "~> 0.5"
 gem "pg", ">= 0.18", "< 2.0"
 gem "sqlite3", "~> 1.4.0"
 
@@ -14,7 +14,7 @@ group :development do
 end
 
 group :test do
-  gem "rake", "~> 10.0"
+  gem "rake", "~> 12.3.3"
   gem "rspec", "~> 2.14.0"
 end
 

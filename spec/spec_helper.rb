@@ -1,10 +1,12 @@
 require 'rspec'
+require 'erb'
 require 'active_record'
 require 'logger'
 require 'hair_trigger'
 require 'yaml'
+require 'shellwords'
 
-CONFIGS = YAML.load_file(File.expand_path(File.dirname(__FILE__) + '/../database.yml'))[ENV["DB_CONFIG"] || "test"]
+CONFIGS = YAML.load(ERB.new(File.read(File.expand_path(File.dirname(__FILE__) + '/../database.yml'))).result(binding))[ENV["DB_CONFIG"] || "test"]
 ADAPTERS = [:mysql2, :postgresql, :sqlite3]
 ADAPTERS.unshift :mysql if ActiveRecord::VERSION::STRING < "5"
 
@@ -57,12 +59,21 @@ shared_context "hairtrigger utils" do
     config = CONFIGS[adapter.to_s].merge({:adapter => adapter.to_s})
     case adapter
       when :mysql, :mysql2
-        ret = `echo "drop database if exists #{config['database']}; create database #{config['database']};" | mysql -u #{config['username']}`
+        command = "mysql"
+        command << " -u #{Shellwords.escape(config['username'])}" if config['username']
+        command << " -P #{Shellwords.escape(config['port'])}" if config['port']
+        command << " -p#{Shellwords.escape(config['password'])}" if config['password']
+        command << " -h #{Shellwords.escape(config['host'])}" if config['host']
+        ret = `echo "drop database if exists #{Shellwords.escape(config['database'])}; create database #{Shellwords.escape(config['database'])} collate utf8_general_ci;" | #{command} 2>&1`
         raise "error creating database: #{ret}" unless $?.exitstatus == 0
       when :postgresql
-        user_arg = "-U #{config['username']}" if config['username']
-        `dropdb #{user_arg} #{config['database']} &>/dev/null`
-        ret = `createdb #{user_arg} #{config['database']} 2>&1`
+        command = "%s"
+        command = "PGPASSWORD=#{Shellwords.escape(config['password'])} #{command}" if config['password']
+        command << " -U #{Shellwords.escape(config['username'])}" if config['username']
+        command << " -p #{Shellwords.escape(config['port'])}" if config['port']
+        command << " -h #{Shellwords.escape(config['host'])}" if config['host']
+        `#{command % "dropdb"} #{config['database']} &>/dev/null`
+        ret = `#{command % "createdb"} #{config['database']} 2>&1`
         raise "error creating database: #{ret}" unless $?.exitstatus == 0
     end
     # Arel has an issue in that it keeps using original connection for quoting,

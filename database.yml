@@ -14,15 +14,24 @@ test:
   sqlite3: &sqlite_defaults
     <<: *defaults
     database: ":memory:"
-travis:
+github-actions:
   mysql:
     <<: *mysql_defaults
+    host: 127.0.0.1
+    password: password
+    port: <%= ENV["MYSQLPORT"] || 3306 %>
     username: root
   mysql2:
     <<: *mysql2_defaults
+    host: 127.0.0.1
+    password: password
+    port: <%= ENV["MYSQLPORT"] || 3306 %>
     username: root
   postgresql:
     <<: *postgres_defaults
+    host: 127.0.0.1
+    password: password
+    port: <%= ENV["PGPORT"] || 5432 %>
     username: postgres
   sqlite3:
     <<: *sqlite_defaults

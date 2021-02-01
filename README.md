@@ -1,5 +1,5 @@
 # HairTrigger
-[<img src="https://secure.travis-ci.org/jenseng/hair_trigger.svg?branch=master" />](http://travis-ci.org/jenseng/hair_trigger)
+[<img src="https://github.com/jenseng/hair_trigger/workflows/CI/badge.svg" />](https://github.com/jenseng/hair_trigger/actions?query=workflow%3ACI)
 
 HairTrigger lets you create and manage database triggers in a concise,
 db-agnostic, Rails-y way. You declare triggers right in your models in Ruby,
@@ -327,10 +327,10 @@ gem in years 😬) but am happy to take contributions. If I'm slow to respond, d
 hesitate to @ me repeatedly, sometimes those github notifications slip through
 the cracks. 😆.
 
-If you want to add a feature/bugfix, you can rely on Travis to run the tests, but
-do also run them locally (especially if you are changing supported railses/etc).
-HairTrigger uses [appraisal](https://github.com/thoughtbot/appraisal) to manage all
-that w/ automagical gemfiles. So the tl;dr when testing locally is:
+If you want to add a feature/bugfix, you can rely on Github Actions to run the
+tests, but do also run them locally (especially if you are changing supported
+railses/etc). HairTrigger uses [appraisal](https://github.com/thoughtbot/appraisal)
+to manage all that w/ automagical gemfiles. So the tl;dr when testing locally is:
 
 1. make sure you have mysql and postgres installed (homebrew or whatever)
 2. `bundle exec appraisal install` -- get all the dependencies
