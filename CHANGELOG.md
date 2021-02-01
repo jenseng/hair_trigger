@@ -3,6 +3,12 @@
 
 ## 0.2.x
 
+### 0.2.24
+
+* add postgis support ([PR #88](https://github.com/jenseng/hair_trigger/pull/88))
+* fix ruby 2.7 warnings ([PR #90](https://github.com/jenseng/hair_trigger/pull/90))
+* fix loading/initialization issue ([PR #92](https://github.com/jenseng/hair_trigger/pull/92))
+
 ### 0.2.23
 
 * rails 6 support ([PR #83](https://github.com/jenseng/hair_trigger/pull/83))
