@@ -1,5 +1,12 @@
 module HairTrigger
   module SchemaDumper
+    module Configuration
+      mattr_accessor :allow_tables
+      mattr_accessor :allow_triggers
+      mattr_accessor :ignore_tables
+      mattr_accessor :ignore_triggers
+    end
+
     module TrailerWithTriggersSupport
       def trailer(stream)
         orig_show_warnings = Builder.show_warnings
@@ -91,9 +98,35 @@ module HairTrigger
     end
 
     def whitelist_triggers(triggers)
-      triggers.reject do |name, source|
+      triggers = triggers.reject do |name, source|
         ActiveRecord::SchemaDumper.ignore_tables.any? { |ignored_table_name| source =~ /ON\s+#{@connection.quote_table_name(ignored_table_name)}\s/ }
       end
+
+      if Configuration.allow_tables.present?
+        triggers = triggers.select do |name, source|
+          Array(Configuration.allow_tables).any? { |allowed_table_name| source =~ /ON\s+#{@connection.quote_table_name(allowed_table_name)}\s/ }
+        end
+      end
+
+      if Configuration.allow_triggers.present?
+        triggers = triggers.select do |name, source|
+          Array(Configuration.allow_triggers).any? { |allowed_trigger_name| allowed_trigger_name === name } # Triple equals to allow regexps or strings as allowed_trigger_name
+        end
+      end
+
+      if Configuration.ignore_tables.present?
+        triggers = triggers.reject do |name, source|
+          Array(Configuration.ignore_tables).any? { |allowed_table_name| source =~ /ON\s+#{@connection.quote_table_name(allowed_table_name)}\s/ }
+        end
+      end
+
+      if Configuration.ignore_triggers.present?
+        triggers = triggers.reject do |name, source|
+          Array(Configuration.ignore_triggers).any? { |allowed_trigger_name| allowed_trigger_name === name } # Triple equals to allow regexps or strings as allowed_trigger_name
+        end
+      end
+
+      triggers
     end
 
     def self.included(base)
