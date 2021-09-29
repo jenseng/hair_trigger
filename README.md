@@ -240,6 +240,21 @@ As long as you don't delete old migrations and schema.rb prior to running
 If you have deleted all trigger migrations, you can regenerate a new
 baseline for model triggers via `rake db:generate_trigger_migration`.
 
+### Filtering
+
+It is possible to filter which triggers are dumped by setting any of these
+configuration values:
+
+```ruby
+HairTrigger::SchemaDumper::Configuration.ignore_triggers = 'exact_trigger_name'
+HairTrigger::SchemaDumper::Configuration.ignore_tables = [/partial_/, 'exact_table_name']
+HairTrigger::SchemaDumper::Configuration.allow_triggers = [/partial_/, 'exact_trigger_name']
+HairTrigger::SchemaDumper::Configuration.allow_tables = 'exact_table_name'
+```
+
+Each option can accept a single String or Regexp, or a mixed array of both.
+
+
 ## Testing
 
 To stay on top of things, it's strongly recommended that you add a test or
