@@ -16,12 +16,11 @@ namespace :db do
       databases = ActiveRecord::Tasks::DatabaseTasks.setup_initial_database_yaml
 
       ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
-        filename = name == 'primary' ? "#{Rails.root}/db/schema.rb" : "#{Rails.root}/db/#{name}_schema.rb"
-
-        ActiveRecord::SchemaDumper.previous_schema = File.exist?(filename) ? File.read(filename) : nil
-
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
         connection_pool = ActiveRecord::Base.establish_connection(db_config)
+
+        filename = dump_filename(db_config.name)
+        ActiveRecord::SchemaDumper.previous_schema = File.exist?(filename) ? File.read(filename) : nil
 
         File.open(filename, "w") do |file|
           ActiveRecord::SchemaDumper.dump(connection_pool.connection, file)
@@ -29,6 +28,27 @@ namespace :db do
       end
 
       Rake::Task["db:schema:dump"].reenable
+    end
+
+    def schema_file_type(format)
+      case format
+        when :ruby
+          "schema.rb"
+        when :sql
+          "structure.sql"
+      end
+    end
+
+    # code adopted from activerecord/lib/active_record/tasks/database_tasks.rb#L441
+    def dump_filename(db_config_name)
+      format = ActiveRecord::Base.schema_format
+      filename = if ActiveRecord::Base.configurations.primary?(db_config_name)
+                   schema_file_type(format)
+                 else
+                   "#{db_config_name}_#{schema_file_type(format)}"
+                 end
+
+      ENV["SCHEMA"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
     end
   end
 end
