@@ -3,6 +3,9 @@
 
 ## 0.2.x
 
+### 0.2.25
+* fix `rails db:migrate` issue for multiple databases ([PR #1](https://github.com/heyjobs/hair_trigger/pull/1))
+
 ### 0.2.24
 
 * add postgis support ([PR #88](https://github.com/jenseng/hair_trigger/pull/88))
