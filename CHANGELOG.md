@@ -3,6 +3,9 @@
 
 ## 0.2.x
 
+### 0.2.26
+* Required at least active record 6.0.0 to support multi-database setup
+
 ### 0.2.25
 * fix `rails db:migrate` issue for multiple databases ([PR #1](https://github.com/heyjobs/hair_trigger/pull/1))
 
