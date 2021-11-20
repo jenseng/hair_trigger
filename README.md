@@ -101,10 +101,10 @@ Only fire the update trigger if at least one of the columns is specified in the 
 Permissions/role to check when calling trigger. PostgreSQL supports `:invoker` (default) and `:definer`, MySQL supports `:definer` (default) and arbitrary users (syntax: `'user'@'host'`).
 
 #### timing(timing)
-Required (but may be satisified by `before`/`after`). Possible values are `:before`/`:after`.
+Required (but may be satisfied by `before`/`after`). Possible values are `:before`/`:after`.
 
 #### events(*events)
-Required (but may be satisified by `before`/`after`). Possible values are `:insert`/`:update`/`:delete`/`:truncate`. MySQL/SQLite only support one action per trigger, and don't support `:truncate`.
+Required (but may be satisfied by `before`/`after`). Possible values are `:insert`/`:update`/`:delete`/`:truncate`. MySQL/SQLite only support one action per trigger, and don't support `:truncate`.
 
 #### nowrap(flag = true)
 PostgreSQL-specific option to prevent the trigger action from being wrapped in a `CREATE FUNCTION`. This is useful for executing existing triggers/functions directly, but is not compatible with the `security` setting nor can it be used with pre-9.0 PostgreSQL when supplying a `where` condition.

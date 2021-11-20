@@ -62,7 +62,7 @@ module HairTrigger
         options[:skip_pending_migrations] = true
       end
 
-      # if we're in a db:schema:dump task (explict or kicked off by db:migrate),
+      # if we're in a db:schema:dump task (explicit or kicked off by db:migrate),
       # we evaluate the previous schema.rb (if it exists), and then all applied
       # migrations in order (even ones older than schema.rb). this ensures we
       # handle db:migrate:down scenarios correctly
