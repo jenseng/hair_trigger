@@ -327,7 +327,7 @@ module HairTrigger
     end
 
     def maybe_execute(&block)
-      raise DeclarationError, "of may only be specified on update triggers" if options[:of] && options[:events] != ["UPDATE"]
+      raise DeclarationError, "of may only be specified on update triggers" if options[:of] && !options[:events].include?("UPDATE")
       if block.arity > 0 # we're creating a trigger group, so set up some stuff and pass the buck
         @errors << ["trigger group must specify timing and event(s) for mysql", :mysql] unless options[:timing] && options[:events]
         @errors << ["nested trigger groups are not supported for mysql", :mysql] if @trigger_group
@@ -471,7 +471,7 @@ $$ LANGUAGE plpgsql#{security ? " SECURITY #{security.to_s.upcase}" : ""};
       end
 
       [sql, <<-SQL]
-CREATE TRIGGER #{prepared_name} #{options[:timing]} #{options[:events].join(" OR ")} #{of_clause}ON #{adapter.quote_table_name(options[:table])}
+CREATE TRIGGER #{prepared_name} #{options[:timing]} #{options[:events].sort.join(" OR ")} #{of_clause}ON #{adapter.quote_table_name(options[:table])}
 FOR EACH #{options[:for_each]}#{prepared_where && db_version >= 90000 ? " WHEN (" + prepared_where + ')': ''} EXECUTE PROCEDURE #{trigger_action};
       SQL
     end

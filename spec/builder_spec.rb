@@ -77,6 +77,30 @@ describe "builder" do
         builder.on(:foos).after(:insert).of(:bar, :baz){ "BAR" }
       }.should raise_error /of may only be specified on update triggers/
     end
+
+    context "with multiple trigger events" do
+      let(:events) { [:insert, event ] }
+
+      context "when trigger events contain update" do
+        let(:event) { :update }
+
+        it "should be allowed" do
+          lambda {
+            builder.on(:foos).after(*events).of(:bar, :baz){ "BAR" }
+          }.should_not raise_error /of may only be specified on update triggers/
+        end
+      end
+
+      context "when trigger events do not contain update" do
+        let(:event) { :delete }
+
+        it "should not be allowed" do
+          lambda {
+            builder.on(:foos).after(*events).of(:bar, :baz){ "BAR" }
+          }.should raise_error /of may only be specified on update triggers/
+        end
+      end
+    end
   end
 
   describe "groups" do
@@ -253,6 +277,13 @@ describe "builder" do
       trigger.generate.grep(/AFTER UPDATE OF bar, baz/).size.should eql(1)
     end
 
+    context "with multiple trigger events" do
+      it "should place `of' clause after the UPDATE trigger" do
+        trigger = builder.on(:foos).after(:update, :delete).of(:bar, :baz){ "BAR" }
+        trigger.generate.grep(/AFTER DELETE OR UPDATE OF bar, baz/).size.should eql(1)
+      end
+    end
+
     it "should accept security" do
       builder.on(:foos).after(:update).security(:invoker){ "FOO" }.generate.
         grep(/SECURITY/).size.should eql(0) # default, so we don't include it
@@ -269,7 +300,7 @@ describe "builder" do
 
     it "should accept multiple events" do
       builder.on(:foos).after(:update, :delete){ "FOO" }.generate.
-        grep(/UPDATE OR DELETE/).size.should eql(1)
+        grep(/DELETE OR UPDATE/).size.should eql(1)
     end
 
     it "should reject long names" do
