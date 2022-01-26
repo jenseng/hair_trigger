@@ -15,6 +15,98 @@ describe "schema dumping" do
       db_triggers.grep(/bob_count \+ 1/).size.should eql(1)
     end
 
+    shared_examples_for 'filterable' do
+      it 'should take in consideration active record schema dumper ignore_tables option with regexp' do
+        ActiveRecord::SchemaDumper.ignore_tables = [/users/]
+
+        dump_schema.should_not match(/create_trigger/)
+      end
+
+      it 'should take in consideration active record schema dumper ignore_tables option with string' do
+        ActiveRecord::SchemaDumper.ignore_tables = ['users']
+
+        dump_schema.should_not match(/create_trigger/)
+      end
+
+      it 'should take in consideration active record schema dumper ignore_tables option with partial string' do
+        ActiveRecord::SchemaDumper.ignore_tables = ['user']
+
+        dump_schema.should match(/create_trigger/)
+      end
+
+      it 'should ignore configured ignore_tables option with regexp' do
+        HairTrigger::SchemaDumper::Configuration.stub(:ignore_tables).and_return([/users/])
+
+        dump_schema.should_not match(/create_trigger/)
+      end
+
+      it 'should ignore configured ignore_tables option with string' do
+        HairTrigger::SchemaDumper::Configuration.stub(:ignore_tables).and_return(['users'])
+
+        dump_schema.should_not match(/create_trigger/)
+      end
+
+      it 'should not ignore configured ignore_tables option with partial string' do
+        HairTrigger::SchemaDumper::Configuration.stub(:ignore_tables).and_return(['user'])
+
+        dump_schema.should match(/create_trigger/)
+      end
+
+      it 'should ignore configured ignore_triggers option with regexp' do
+        HairTrigger::SchemaDumper::Configuration.stub(:ignore_triggers).and_return([/bob/])
+
+        dump_schema.should_not match(/trigger.+bob/i)
+      end
+
+      it 'should ignore configured ignore_triggers option with string' do
+        HairTrigger::SchemaDumper::Configuration.stub(:ignore_triggers).and_return(['users_after_insert_row_when_new_name_bob__tr'])
+
+        dump_schema.should_not match(/trigger.+bob/i)
+      end
+
+      it 'should not ignore configured ignore_triggers option with partial string' do
+        HairTrigger::SchemaDumper::Configuration.stub(:ignore_triggers).and_return(['users_after_insert_row_when_new_name_bob'])
+
+        dump_schema.should match(/trigger.+bob/i)
+      end
+
+      it 'should allow configured allow_tables option with regexp' do
+        HairTrigger::SchemaDumper::Configuration.stub(:allow_tables).and_return([/users/])
+
+        dump_schema.should match(/create_trigger/)
+      end
+
+      it 'should allow configured allow_tables option with string' do
+        HairTrigger::SchemaDumper::Configuration.stub(:allow_tables).and_return(['users'])
+
+        dump_schema.should match(/create_trigger/)
+      end
+
+      it 'should not allow configured allow_tables option with partial string' do
+        HairTrigger::SchemaDumper::Configuration.stub(:allow_tables).and_return(['user'])
+
+        dump_schema.should_not match(/create_trigger/)
+      end
+
+      it 'should allow configured allow_triggers option with regexp' do
+        HairTrigger::SchemaDumper::Configuration.stub(:allow_triggers).and_return([/bob/])
+
+        dump_schema.should match(/trigger.+bob/i)
+      end
+
+      it 'should allow configured allow_triggers option with string' do
+        HairTrigger::SchemaDumper::Configuration.stub(:allow_triggers).and_return(['users_after_insert_row_when_new_name_bob__tr'])
+
+        dump_schema.should match(/trigger.+bob/i)
+      end
+
+      it 'should not allow configured allow_triggers option with partial string' do
+        HairTrigger::SchemaDumper::Configuration.stub(:allow_triggers).and_return(['users_after_insert_row_when_new_name_bob'])
+
+        dump_schema.should_not match(/trigger.+bob/i)
+      end
+    end
+
     context "without schema.rb" do
       it "should work" do
         schema_rb = dump_schema
@@ -45,25 +137,7 @@ describe "schema dumping" do
         schema_rb.should_not match(/bob_count \+ 2/)
       end
 
-      it 'should take in consideration active record schema dumper ignore_tables option with regexp' do
-        ActiveRecord::SchemaDumper.ignore_tables = [/users/]
-
-        dump_schema.should_not match(/create_trigger/)
-      end
-
-      it 'should take in consideration active record schema dumper ignore_tables option with string' do
-        ActiveRecord::SchemaDumper.ignore_tables = ['users']
-
-        dump_schema.should_not match(/create_trigger/)
-      end
-
-      it 'should take in consideration active record schema dumper ignore_tables option with partial string' do
-        ActiveRecord::SchemaDumper.ignore_tables = ['user']
-
-        dump_schema.should match(/create_trigger/)
-      end
-
-
+      it_should_behave_like 'filterable'
     end
 
     context "with schema.rb" do
@@ -100,24 +174,7 @@ describe "schema dumping" do
         schema_rb.should_not match(/bob_count \+ 2/)
       end
 
-      it 'should take in consideration active record schema dumper ignore_tables option with regexp' do
-        ActiveRecord::SchemaDumper.ignore_tables = [/users/]
-
-        dump_schema.should_not match(/create_trigger/)
-      end
-
-      it 'should take in consideration active record schema dumper ignore_tables option with string' do
-        ActiveRecord::SchemaDumper.ignore_tables = ['users']
-
-        dump_schema.should_not match(/create_trigger/)
-      end
-
-      it 'should take in consideration active record schema dumper ignore_tables option with partial string' do
-        ActiveRecord::SchemaDumper.ignore_tables = ['user']
-
-        dump_schema.should match(/create_trigger/)
-      end
-
+      it_should_behave_like 'filterable'
     end
 
   end
