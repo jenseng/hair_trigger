@@ -3,6 +3,11 @@
 
 ## 0.2.x
 
+### 0.2.25
+
+* support rails 7 ([PR 100](https://github.com/jenseng/hair_trigger/pull/100))
+* filtering support for schema dumper ([PR 96](https://github.com/jenseng/hair_trigger/pull/96))
+
 ### 0.2.24
 
 * add postgis support ([PR #88](https://github.com/jenseng/hair_trigger/pull/88))

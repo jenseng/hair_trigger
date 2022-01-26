@@ -363,4 +363,4 @@ to manage all that w/ automagical gemfiles. So the tl;dr when testing locally is
 
 ## Copyright
 
-Copyright (c) 2011-2021 Jon Jensen. See LICENSE.txt for further details.
+Copyright (c) 2011-2022 Jon Jensen. See LICENSE.txt for further details.
