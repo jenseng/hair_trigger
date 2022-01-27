@@ -10,7 +10,7 @@ CONFIGS = YAML.load(ERB.new(File.read(File.expand_path(File.dirname(__FILE__) + 
 ADAPTERS = [:mysql2, :postgresql, :sqlite3]
 ADAPTERS.unshift :mysql if ActiveRecord::VERSION::STRING < "5"
 
-def each_adapter
+def each_adapter(&block)
   require 'active_record/connection_adapters/postgresql_adapter'
   require 'active_record/connection_adapters/mysql_adapter' if ADAPTERS.include? :mysql
   require 'active_record/connection_adapters/mysql2_adapter'
@@ -20,7 +20,7 @@ def each_adapter
   ADAPTERS.each do |adapter_name|
     context "under #{adapter_name}" do
       let(:adapter) { adapter_name }
-      instance_eval &Proc.new
+      instance_eval &Proc.new(&block)
     end
   end
 end

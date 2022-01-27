@@ -30,7 +30,7 @@ jobs:
           --health-retries 3
     strategy:
       matrix:
-        ruby: ['2.5', '2.7']
+        ruby: ['2.5', '2.7', '3.0']
         gemfile: [ 'activerecord_5.0',
                    'activerecord_5.1',
                    'activerecord_5.2',
@@ -40,6 +40,10 @@ jobs:
         ]
         exclude:
           - { ruby: '2.5', gemfile: 'activerecord_7.0' }
+          - { ruby: '3.0', gemfile: 'activerecord_5.0' }
+          - { ruby: '3.0', gemfile: 'activerecord_5.1' }
+          - { ruby: '3.0', gemfile: 'activerecord_5.2' }
+
     env:
       BUNDLE_GEMFILE: gemfiles/${{ matrix.gemfile }}.gemfile
     steps:
