@@ -6,7 +6,14 @@ require 'hair_trigger'
 require 'yaml'
 require 'shellwords'
 
-CONFIGS = YAML.load(ERB.new(File.read(File.expand_path(File.dirname(__FILE__) + '/../database.yml'))).result(binding))[ENV["DB_CONFIG"] || "test"]
+database_yml_contents = ERB.new(File.read(File.expand_path(File.dirname(__FILE__) + '/../database.yml'))).result(binding)
+
+CONFIGS = if Psych::VERSION >= '4.0'
+  YAML.safe_load(database_yml_contents, aliases: true)[ENV["DB_CONFIG"] || "test"]
+else
+  YAML.safe_load(database_yml_contents, [], [], true)[ENV["DB_CONFIG"] || "test"]
+end
+
 ADAPTERS = [:mysql2, :postgresql, :sqlite3]
 ADAPTERS.unshift :mysql if ActiveRecord::VERSION::STRING < "5"
 
