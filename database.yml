@@ -2,12 +2,10 @@ defaults: &defaults
   database: hairtrigger_schema_test
   host: localhost
 test:
-  mysql: &mysql_defaults
-    <<: *defaults
-    username: root
   mysql2: &mysql2_defaults
     <<: *defaults
     username: root
+    prepared_statements: true
   postgresql: &postgres_defaults
     <<: *defaults
     min_messages: error
@@ -15,12 +13,6 @@ test:
     <<: *defaults
     database: ":memory:"
 github-actions:
-  mysql:
-    <<: *mysql_defaults
-    host: 127.0.0.1
-    password: password
-    port: <%= ENV["MYSQLPORT"] || 3306 %>
-    username: root
   mysql2:
     <<: *mysql2_defaults
     host: 127.0.0.1

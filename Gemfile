@@ -10,6 +10,6 @@ group :development do
 end
 
 group :test do
-  gem 'rake', '~> 12.3.3'
-  gem 'rspec', '~> 2.14.0'
+  gem 'rake', '~> 13.0.6'
+  gem 'rspec', '~> 3.12.0'
 end

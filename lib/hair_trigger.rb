@@ -39,19 +39,14 @@ module HairTrigger
     end
 
     def migrator
-      version = ActiveRecord::VERSION::STRING
-      if version >= "6.0."
-        migrations = ActiveRecord::MigrationContext.new(migration_path, ActiveRecord::SchemaMigration).migrations
-      elsif version >= "5.2."
-        migrations = ActiveRecord::MigrationContext.new(migration_path).migrations
-      else # version >= "4.0."
-        migrations = ActiveRecord::Migrator.migrations(migration_path)
-      end
-
-      if version >= "6.0."
-        ActiveRecord::Migrator.new(:up, migrations, ActiveRecord::SchemaMigration)
+      if ActiveRecord::VERSION::STRING >= "7.1."
+        connection = ActiveRecord::Tasks::DatabaseTasks.migration_connection
+        schema_migration = connection.schema_migration
+        migrations = ActiveRecord::MigrationContext.new(migration_path, schema_migration).migrations
+        ActiveRecord::Migrator.new(:up, migrations, schema_migration, ActiveRecord::InternalMetadata.new(connection))
       else
-        ActiveRecord::Migrator.new(:up, migrations)
+        migrations = ActiveRecord::MigrationContext.new(migration_path, ActiveRecord::SchemaMigration).migrations
+        ActiveRecord::Migrator.new(:up, migrations, ActiveRecord::SchemaMigration)
       end
     end
 
@@ -200,8 +195,16 @@ end
       "#{migration_base_name}#{name_version}"
     end
 
+    def timestamped_migrations
+      if ActiveRecord::VERSION::STRING >= "7.0."
+        ActiveRecord.timestamped_migrations
+      else
+        ActiveRecord::Base.timestamped_migrations
+      end
+    end
+
     def infer_migration_version(migration_name)
-      ActiveRecord::Base.timestamped_migrations ?
+      timestamped_migrations ?
         Time.now.getutc.strftime("%Y%m%d%H%M%S") :
         Dir.glob(migration_path + '/*rb').
           map{ |f| f.gsub(/.*\/(\d+)_.*/, '\1').to_i}.
