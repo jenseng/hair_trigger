@@ -15,11 +15,9 @@ else
 end
 
 ADAPTERS = [:mysql2, :postgresql, :sqlite3]
-ADAPTERS.unshift :mysql if ActiveRecord::VERSION::STRING < "5"
 
 def each_adapter(&block)
   require 'active_record/connection_adapters/postgresql_adapter'
-  require 'active_record/connection_adapters/mysql_adapter' if ADAPTERS.include? :mysql
   require 'active_record/connection_adapters/mysql2_adapter'
   require 'active_record/connection_adapters/sqlite3_adapter'
   require 'mysql2'
@@ -48,24 +46,18 @@ shared_context "hairtrigger utils" do
     FileUtils.mkdir_p(HairTrigger.migration_path)
     FileUtils.cp_r('spec/models', 'tmp')
     reset_models
-    FileUtils.cp_r(Dir.glob("spec/migrations#{migrations_sufix}/#{options[:migration_glob]}"), HairTrigger.migration_path)
-  end
-
-  def migrations_sufix
-    if ActiveRecord::VERSION::STRING < '3.1.'
-      '-pre-3.1'
-    elsif ActiveRecord::VERSION::STRING < '5.0'
-      '-3.2'
-    else
-      ''
-    end
+    FileUtils.cp_r(Dir.glob("spec/migrations/#{options[:migration_glob]}"), HairTrigger.migration_path)
   end
 
   def initialize_db
-    ActiveRecord::Base.clear_all_connections!
+    if ActiveRecord::VERSION::STRING > "7.0."
+      ActiveRecord::Base.connection_handler.clear_all_connections!
+    else
+      ActiveRecord::Base.clear_all_connections!
+    end
     config = CONFIGS[adapter.to_s].merge({:adapter => adapter.to_s})
     case adapter
-      when :mysql, :mysql2
+      when :mysql2
         command = "mysql"
         command << " -u #{Shellwords.escape(config['username'])}" if config['username']
         command << " -P #{Shellwords.escape(config['port'])}" if config['port']
@@ -93,12 +85,10 @@ shared_context "hairtrigger utils" do
 
   def migrate_db
     ActiveRecord::Migration.verbose = false
-    if ActiveRecord::VERSION::STRING >= "6.0"
-      ActiveRecord::MigrationContext.new(HairTrigger.migration_path, ActiveRecord::SchemaMigration).migrate
-    elsif ActiveRecord::VERSION::STRING >= "5.2"
+    if ActiveRecord::VERSION::STRING > "7.0."
       ActiveRecord::MigrationContext.new(HairTrigger.migration_path).migrate
     else
-      ActiveRecord::Migrator.migrate(HairTrigger.migration_path)
+      ActiveRecord::MigrationContext.new(HairTrigger.migration_path, ActiveRecord::SchemaMigration).migrate
     end
   end
 

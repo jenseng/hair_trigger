@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.summary = 'easy database triggers for active record'
   s.description = 'allows you to declare database triggers in ruby in your models, and then generate appropriate migrations as they change'
 
-  s.required_ruby_version     = '>= 2.3.0'
+  s.required_ruby_version     = '>= 2.5.0'
 
   s.author            = 'Jon Jensen'
   s.email             = 'jenseng@gmail.com'
@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
 
   s.files = %w(LICENSE.txt Rakefile README.md) + Dir['lib/**/*.rb'] + Dir['lib/**/*.rake']
 
-  s.add_dependency 'activerecord', '>= 5.0', '< 8'
+  s.add_dependency 'activerecord', '>= 6.0', '< 8'
   s.add_dependency 'ruby_parser', '~> 3.10'
   s.add_dependency 'ruby2ruby', '~> 2.4'
 end

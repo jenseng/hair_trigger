@@ -13,7 +13,7 @@ describe "migrations" do
     it "should return false if there are pending model triggers" do
       reset_tmp(:migration_glob => "*initial_tables*")
       initialize_db
-      HairTrigger.should_not be_migrations_current
+      expect(HairTrigger).not_to be_migrations_current
     end
 
     it "should return true if migrations are current" do
@@ -21,20 +21,20 @@ describe "migrations" do
       reset_tmp(:migration_glob => "20110331212*")
       initialize_db
       migrate_db
-      HairTrigger.should be_migrations_current
+      expect(HairTrigger).to be_migrations_current
 
       # or multiple
       reset_tmp
       initialize_db
       migrate_db
-      HairTrigger.should be_migrations_current
+      expect(HairTrigger).to be_migrations_current
     end
 
     it "should return true even if migrations haven't run" do
       reset_tmp
       initialize_db
       migrate_db
-      HairTrigger.should be_migrations_current
+      expect(HairTrigger).to be_migrations_current
     end
   end
 
@@ -44,8 +44,8 @@ describe "migrations" do
       initialize_db
 
       migrations = HairTrigger.current_migrations
-      migrations.size.should == 1
-      migrations[0][1].prepared_name.should == "users_after_insert_row_when_new_name_bob__tr"
+      expect(migrations.size).to eq 1
+      expect(migrations[0][1].prepared_name).to eq "users_after_insert_row_when_new_name_bob__tr"
     end
 
     it "should not be inferred from change methods" do
@@ -54,7 +54,7 @@ describe "migrations" do
       initialize_db
 
       migrations = HairTrigger.current_migrations
-      migrations.size.should == 0
+      expect(migrations.size).to eq 0
     end
   end
 end
