@@ -2,6 +2,8 @@
 
 ## 1.0.x
 
+- fix `rails db:migrate` issue for multiple databases ([PR #1](https://github.com/heyjobs/hair_trigger/pull/1))
+
 ### 1.0.0
 
 - rails 7 bugfix ([PR 104](https://github.com/jenseng/hair_trigger/pull/104) and [PR 106](https://github.com/jenseng/hair_trigger/pull/106))
