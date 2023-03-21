@@ -202,6 +202,15 @@ you need to actually implement `up`/`down` methods in your migration
 (rather than `change`) so that it does the right thing when
 rolling back.
 
+The `drop_trigger` currently only supports the `drop_trigger(name, table, options = {})`
+format. You will need to determine what the resulting trigger name is (e.g. `SHOW TRIGGERS`
+query) and use that name in the `drop_triggers` call. Your `down` migration method
+might contain something like:
+
+```ruby
+drop_trigger(:users_after_insert_row_tr, :transactions)
+```
+
 #### Manual triggers and :compatibility
 
 As bugs are fixed and features are implemented in HairTrigger, it's possible
