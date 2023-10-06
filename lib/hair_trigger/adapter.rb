@@ -48,7 +48,7 @@ FOR EACH ROW
               SELECT tgfoid
               FROM pg_trigger
               WHERE NOT tgisinternal AND tgconstrrelid = 0 AND tgrelid IN (
-                SELECT oid FROM pg_class WHERE relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')
+                SELECT oid FROM pg_class WHERE relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = '#{HairTrigger.pg_schema}')
               )
             )
           SQL
@@ -57,9 +57,9 @@ FOR EACH ROW
             SELECT tgname::varchar, pg_get_triggerdef(oid, true)
             FROM pg_trigger
             WHERE NOT tgisinternal AND tgconstrrelid = 0 AND tgrelid IN (
-              SELECT oid FROM pg_class WHERE relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')
+              SELECT oid FROM pg_class WHERE relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = '#{HairTrigger.pg_schema}')
             )
-            
+
             #{name_clause ? " AND tgname::varchar " + name_clause : ""}
             UNION
             SELECT proname || '()', pg_get_functiondef(oid)
