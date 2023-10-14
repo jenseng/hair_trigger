@@ -31,7 +31,7 @@ module HairTrigger
           select_rows("SELECT name, sql FROM sqlite_master WHERE type = 'trigger' #{name_clause ? " AND name " + name_clause : ""}").each do |(name, definition)|
             triggers[name] = quote_table_name_in_trigger(definition) + ";\n"
           end
-        when :mysql
+        when :mysql, :trilogy
           select_rows("SHOW TRIGGERS").each do |(name, event, table, actions, timing, created, sql_mode, definer)|
             definer = normalize_mysql_definer(definer)
             next if options[:only] && !options[:only].include?(name)
@@ -59,7 +59,7 @@ FOR EACH ROW
             WHERE NOT tgisinternal AND tgconstrrelid = 0 AND tgrelid IN (
               SELECT oid FROM pg_class WHERE relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')
             )
-            
+
             #{name_clause ? " AND tgname::varchar " + name_clause : ""}
             UNION
             SELECT proname || '()', pg_get_functiondef(oid)

@@ -55,6 +55,11 @@ describe "adapter" do
       it_behaves_like "mysql"
     end if ADAPTERS.include? :mysql2
 
+    context "trilogy" do
+      let(:adapter) { :trilogy }
+      it_behaves_like "mysql"
+    end if ADAPTERS.include? :trilogy
+
     context "postgresql" do
       let(:adapter) { :postgresql }
 

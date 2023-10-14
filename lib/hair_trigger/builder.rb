@@ -162,7 +162,7 @@ module HairTrigger
     chainable_methods :name, :on, :for_each, :before, :after, :where, :security, :timing, :events, :all, :nowrap, :of, :declare
 
     def create_grouped_trigger?
-      adapter_name == :mysql
+      adapter_name == :mysql || adapter_name == :trilogy
     end
 
     def prepare!
@@ -224,7 +224,7 @@ module HairTrigger
         [case adapter_name
           when :sqlite
             generate_trigger_sqlite
-          when :mysql
+          when :mysql, :trilogy
             generate_trigger_mysql
           when :postgresql, :postgis
             generate_trigger_postgresql
@@ -407,7 +407,7 @@ module HairTrigger
 
     def generate_drop_trigger
       case adapter_name
-        when :sqlite, :mysql
+        when :sqlite, :mysql, :trilogy
           "DROP TRIGGER IF EXISTS #{prepared_name};\n"
         when :postgresql, :postgis
           "DROP TRIGGER IF EXISTS #{prepared_name} ON #{adapter.quote_table_name(options[:table])};\nDROP FUNCTION IF EXISTS #{adapter.quote_table_name(prepared_name)}();\n"
