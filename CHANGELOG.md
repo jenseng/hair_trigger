@@ -4,14 +4,16 @@
 
 ## 1.1.0
 
-- Add support for trilogy adapter ([PR 115](https://github.com/jenseng/hair_trigger/pulls)
-
-- fix `rails db:migrate` issue for multiple databases ([PR #1](https://github.com/heyjobs/hair_trigger/pull/1))
+- add support for trilogy adapter ([#115](https://github.com/jenseng/hair_trigger/pull/115))
+- support postgres schema config setting ([#114](https://github.com/jenseng/hair_trigger/pull/114))
+- skip `schema.rb` generation when `schema_format` is set to `:sql` ([#113](https://github.com/jenseng/hair_trigger/pull/113))
+- clarify that `drop_trigger` uses different parameters than `create_trigger` ([#112](https://github.com/jenseng/hair_trigger/pull/112))
+- fix `rails db:migrate` issue for multiple databases ([#110](https://github.com/heyjobs/hair_trigger/pull/110))
 
 ### 1.0.0
 
-- rails 7 bugfix ([PR 104](https://github.com/jenseng/hair_trigger/pull/104) and [PR 106](https://github.com/jenseng/hair_trigger/pull/106))
-- CI improvements ([PR 103](https://github.com/jenseng/hair_trigger/pull/103))
+- rails 7 bugfix ([#104](https://github.com/jenseng/hair_trigger/pull/104) and [#106](https://github.com/jenseng/hair_trigger/pull/106))
+- CI improvements ([#103](https://github.com/jenseng/hair_trigger/pull/103))
 - tentative rails 7.1 support (waiting for its release 🤞)
 - require ruby 2.5+ and rails 6+
 
@@ -19,48 +21,48 @@
 
 ### 0.2.25
 
-- support rails 7 ([PR 100](https://github.com/jenseng/hair_trigger/pull/100))
-- filtering support for schema dumper ([PR 96](https://github.com/jenseng/hair_trigger/pull/96))
+- support rails 7 ([#100](https://github.com/jenseng/hair_trigger/pull/100))
+- filtering support for schema dumper ([#96](https://github.com/jenseng/hair_trigger/pull/96))
 
 ### 0.2.24
 
-- add postgis support ([PR #88](https://github.com/jenseng/hair_trigger/pull/88))
-- fix ruby 2.7 warnings ([PR #90](https://github.com/jenseng/hair_trigger/pull/90))
-- fix loading/initialization issue ([PR #92](https://github.com/jenseng/hair_trigger/pull/92))
+- add postgis support ([#88](https://github.com/jenseng/hair_trigger/pull/88))
+- fix ruby 2.7 warnings ([#90](https://github.com/jenseng/hair_trigger/pull/90))
+- fix loading/initialization issue ([#92](https://github.com/jenseng/hair_trigger/pull/92))
 
 ### 0.2.23
 
-- rails 6 support ([PR #83](https://github.com/jenseng/hair_trigger/pull/83))
+- rails 6 support ([#83](https://github.com/jenseng/hair_trigger/pull/83))
 
 ### 0.2.22
 
-- drop old rubies/railses ([PR #77](https://github.com/jenseng/hair_trigger/pull/77))
-- fix frozen string issue ([PR #78](https://github.com/jenseng/hair_trigger/pull/78))
+- drop old rubies/railses ([#77](https://github.com/jenseng/hair_trigger/pull/77))
+- fix frozen string issue ([#78](https://github.com/jenseng/hair_trigger/pull/78))
 
 ### 0.2.21
 
-- fix NoMethodError ([PR #72](https://github.com/jenseng/hair_trigger/pull/72))
-- correctly pin dependencies in tests ([PR #74](https://github.com/jenseng/hair_trigger/pull/74))
+- fix NoMethodError ([#72](https://github.com/jenseng/hair_trigger/pull/72))
+- correctly pin dependencies in tests ([#74](https://github.com/jenseng/hair_trigger/pull/74))
 - misc testing fixes (mysql 8.0.2+, easier local setup)
 
 ### 0.2.20
 
 - ruby_parser bump for ruby 2.4
-- rails 5.1 support ([PR #63](https://github.com/jenseng/hair_trigger/pull/63), [PR #64](https://github.com/jenseng/hair_trigger/pull/64))
-- fix postgres version check ([65](https://github.com/jenseng/hair_trigger/issues/65)))
-- fix for missing directory ([60](https://github.com/jenseng/hair_trigger/issues/60)))
-- remove deprecation warnings ([PR #59](https://github.com/jenseng/hair_trigger/pull/59))
+- rails 5.1 support ([#63](https://github.com/jenseng/hair_trigger/pull/63), [#64](https://github.com/jenseng/hair_trigger/pull/64))
+- fix postgres version check ([#65](https://github.com/jenseng/hair_trigger/issues/65))
+- fix for missing directory ([#60](https://github.com/jenseng/hair_trigger/issues/60))
+- remove deprecation warnings ([#59](https://github.com/jenseng/hair_trigger/pull/59))
 
 ### 0.2.19
 
-- allow `of` for mysql ([PR #58](https://github.com/jenseng/hair_trigger/pull/58))
-- fix `all` dumping ([PR #57](https://github.com/jenseng/hair_trigger/pull/57))
+- allow `of` for mysql ([#58](https://github.com/jenseng/hair_trigger/pull/58))
+- fix `all` dumping ([#57](https://github.com/jenseng/hair_trigger/pull/57))
 
 ### 0.2.18
 
 - ruby_parser bump for ruby 2.3
 - fix tests for rails 5
-- doc fixes ([PR #55](https://github.com/jenseng/hair_trigger/pull/55)
+- doc fixes ([#55](https://github.com/jenseng/hair_trigger/pull/55))
 
 ### 0.2.17
 
@@ -76,8 +78,8 @@
 
 ### 0.2.14
 
-- respect ActiveRecord::SchemaDumper.ignore_tables ([PR #39](https://github.com/jenseng/hair_trigger/pull/39))
-- ensure PG functions are created before triggers in schema.rb ([PR #39](https://github.com/jenseng/hair_trigger/pull/39))
+- respect ActiveRecord::SchemaDumper.ignore_tables ([#39](https://github.com/jenseng/hair_trigger/pull/39))
+- ensure PG functions are created before triggers in schema.rb ([#39](https://github.com/jenseng/hair_trigger/pull/39))
 
 ### 0.2.13
 
