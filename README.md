@@ -362,8 +362,8 @@ to manage all that w/ automagical gemfiles. So the tl;dr when testing locally is
 
 ## Compatibility
 
-* Ruby 2.3.0+
-* Rails 5.0+
+* Ruby 3.0+
+* Rails 6.1+
 * PostgreSQL 8.0+
 * MySQL 5.0.10+
 * SQLite 3.3.8+
@@ -372,4 +372,4 @@ to manage all that w/ automagical gemfiles. So the tl;dr when testing locally is
 
 ## Copyright
 
-Copyright (c) 2011-2022 Jon Jensen. See LICENSE.txt for further details.
+Copyright (c) 2011-2024 Jon Jensen. See LICENSE.txt for further details.
