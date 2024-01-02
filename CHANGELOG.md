@@ -1,6 +1,10 @@
 # Changelog
 
-## 1.0.x
+## 1.1.x
+
+## 1.1.0
+
+- Add support for trilogy adapter ([PR 115](https://github.com/jenseng/hair_trigger/pulls)
 
 ### 1.0.0
 
