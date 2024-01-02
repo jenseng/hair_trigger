@@ -46,10 +46,10 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
+      - run: sudo apt-get -yqq install libpq-dev libmysqlclient-dev
+      - run: gem install bundler
       - env:
           DB_CONFIG: github-actions
           PGPORT: ${{ job.services.postgres.ports[5432] }}
           MYSQLPORT: ${{ job.services.mysql.ports[3306] }}
-        run: |
-          sudo apt-get -yqq install libpq-dev libmysqlclient-dev
-          bundle exec rspec
+        run: bundle exec rspec
