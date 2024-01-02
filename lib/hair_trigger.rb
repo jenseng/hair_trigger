@@ -13,7 +13,7 @@ module HairTrigger
   autoload :MigrationReader, 'hair_trigger/migration_reader'
 
   class << self
-    attr_writer :model_path, :schema_rb_path, :migration_path
+    attr_writer :model_path, :schema_rb_path, :migration_path, :pg_schema
 
     def current_triggers
       # see what the models say there should be
@@ -221,6 +221,10 @@ end
 
     def migration_path
       @migration_path ||= 'db/migrate'
+    end
+
+    def pg_schema
+      @pg_schema ||= 'public'
     end
 
     def adapter_name_for(adapter)
