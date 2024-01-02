@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.summary = 'easy database triggers for active record'
   s.description = 'allows you to declare database triggers in ruby in your models, and then generate appropriate migrations as they change'
 
-  s.required_ruby_version     = '>= 2.5.0'
+  s.required_ruby_version     = '>= 3.0'
 
   s.author            = 'Jon Jensen'
   s.email             = 'jenseng@gmail.com'
