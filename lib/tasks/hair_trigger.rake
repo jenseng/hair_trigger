@@ -43,7 +43,7 @@ namespace :db do
 
     # code adopted from activerecord/lib/active_record/tasks/database_tasks.rb#L441
     def dump_filename(db_config_name)
-      format = ActiveRecord::Base.schema_format
+      format = ActiveRecord.respond_to?(:schema_format) ? ActiveRecord.schema_format : ActiveRecord::Base.schema_format
       filename = if ActiveRecord::Base.configurations.primary?(db_config_name)
                    schema_file_type(format)
                  else
