@@ -2,13 +2,19 @@
 
 ## 1.1.x
 
-## 1.1.0
+### 1.1.0
+
+- fix for rails 7+ compatibility ([#118](https://github.com/jenseng/hair_trigger/pull/118))
+
+### 1.1.0
 
 - add support for trilogy adapter ([#115](https://github.com/jenseng/hair_trigger/pull/115))
 - support postgres schema config setting ([#114](https://github.com/jenseng/hair_trigger/pull/114))
 - skip `schema.rb` generation when `schema_format` is set to `:sql` ([#113](https://github.com/jenseng/hair_trigger/pull/113))
 - clarify that `drop_trigger` uses different parameters than `create_trigger` ([#112](https://github.com/jenseng/hair_trigger/pull/112))
 - fix `rails db:migrate` issue for multiple databases ([#110](https://github.com/heyjobs/hair_trigger/pull/110))
+
+## 1.0.x
 
 ### 1.0.0
 
