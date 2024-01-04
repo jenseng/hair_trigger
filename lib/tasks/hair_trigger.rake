@@ -11,7 +11,8 @@ namespace :db do
   namespace :schema do
     desc "Create a db/schema.rb file that can be portably used against any DB supported by AR"
     task :dump => :environment do
-      next unless ActiveRecord::Base.schema_format == :ruby
+      format = ActiveRecord.respond_to?(:schema_format) ? ActiveRecord.schema_format : ActiveRecord::Base.schema_format
+      next unless format == :ruby
 
       require 'active_record/schema_dumper'
 
