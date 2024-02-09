@@ -228,7 +228,14 @@ end
     end
 
     def adapter_name_for(adapter)
-      adapter.adapter_name.downcase.sub(/\d$/, '').to_sym
+      adapter_name = adapter.adapter_name.downcase
+      adapter_name.sub!(/\d$/, '')
+      case adapter_name
+      when "litedb"
+        :sqlite
+      else
+        adapter_name.to_sym
+      end
     end
   end
 end
