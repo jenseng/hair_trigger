@@ -31,7 +31,7 @@ module HairTrigger
           select_rows("SELECT name, sql FROM sqlite_master WHERE type = 'trigger' #{name_clause ? " AND name " + name_clause : ""}").each do |(name, definition)|
             triggers[name] = quote_table_name_in_trigger(definition) + ";\n"
           end
-        when :mysql, :trilogy
+        when :mysql, :trilogy, :mysql2rgeo
           select_rows("SHOW TRIGGERS").each do |(name, event, table, actions, timing, created, sql_mode, definer)|
             definer = normalize_mysql_definer(definer)
             next if options[:only] && !options[:only].include?(name)
