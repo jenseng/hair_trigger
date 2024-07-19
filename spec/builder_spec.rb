@@ -253,6 +253,12 @@ describe "builder" do
       expect(trigger.generate.grep(/AFTER UPDATE OF bar, baz/).size).to eql(1)
     end
 
+    it "should reject use of referencing pre-10.0" do
+      expect {
+        builder.on(:foos).after(:update).new_as("new_table").old_as("old_table"){ "FOO" }.generate
+      }.to raise_error /referencing can only be used on postgres 10.0 and greater/
+    end
+
     it "should accept security" do
       expect(builder.on(:foos).after(:update).security(:invoker){ "FOO" }.generate.
         grep(/SECURITY/).size).to eql(0) # default, so we don't include it
@@ -308,6 +314,17 @@ describe "builder" do
     it "should allow variable declarations" do
       expect(builder.on(:foos).after(:insert).declare("foo INT"){ "FOO" }.generate.join("\n")).
         to match(/DECLARE\s*foo INT;\s*BEGIN\s*FOO/)
+    end
+
+    context ">= 10.0" do
+      before(:each) do
+        @adapter = MockAdapter.new("postgresql", :postgresql_version => 100000)
+      end
+
+      it "should accept `new_as' and `old_as' tables" do
+        trigger = builder.on(:foos).after(:update).new_as("new_table").old_as("old_table"){ "FOO" }
+        expect(trigger.generate.grep(/REFERENCING NEW TABLE AS new_table OLD TABLE AS old_table/).size).to eql(1)
+      end
     end
 
     context "legacy" do

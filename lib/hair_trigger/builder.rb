@@ -82,6 +82,18 @@ module HairTrigger
       options[:of] = columns
     end
 
+    def old_as(table)
+      raise DeclarationError, "`old_as' requested, but no table_name specified" unless table.present?
+      options[:referencing] ||= {}
+      options[:referencing][:old] = table
+    end
+
+    def new_as(table)
+      raise DeclarationError, "`new_as' requested, but no table_name specified" unless table.present?
+      options[:referencing] ||= {}
+      options[:referencing][:new] = table
+    end
+
     def declare(declarations)
       options[:declarations] = declarations
     end
@@ -159,7 +171,7 @@ module HairTrigger
         METHOD
       end
     end
-    chainable_methods :name, :on, :for_each, :before, :after, :where, :security, :timing, :events, :all, :nowrap, :of, :declare
+    chainable_methods :name, :on, :for_each, :before, :after, :where, :security, :timing, :events, :all, :nowrap, :of, :declare, :old_as, :new_as
 
     def create_grouped_trigger?
       adapter_name == :mysql || adapter_name == :trilogy
@@ -306,6 +318,10 @@ module HairTrigger
             "where(#{prepared_where.inspect})"
           when :of
             "of(#{options[:of].inspect[1..-2]})"
+          when :old_as
+            "old_as(#{options[:referencing][:old].inspect})"
+          when :new_as
+            "new_as(#{options[:referencing][:new].inspect})"
           when :for_each
             "for_each(#{options[:for_each].downcase.to_sym.inspect})"
           when :declare
@@ -405,6 +421,23 @@ module HairTrigger
       end
     end
 
+    def referencing_clause(check_support = true)
+      if options[:referencing] && (!check_support || supports_referencing?)
+        "REFERENCING " + options[:referencing].map{ |k, v| "#{k.to_s.upcase} TABLE AS #{v}" }.join(" ")
+      end
+    end
+
+    def supports_referencing?
+      case adapter_name
+      when :sqlite, :mysql
+        false
+      when :postgresql, :postgis
+        db_version >= 100000
+      else
+        false
+      end
+    end
+
     def generate_drop_trigger
       case adapter_name
         when :sqlite, :mysql, :trilogy
@@ -433,6 +466,7 @@ END;
       raise GenerationError, "security cannot be used in conjunction with nowrap" if options[:nowrap] && options[:security]
       raise GenerationError, "where can only be used in conjunction with nowrap on postgres 9.0 and greater" if options[:nowrap] && prepared_where && db_version < 90000
       raise GenerationError, "of can only be used in conjunction with nowrap on postgres 9.1 and greater" if options[:nowrap] && options[:of] && db_version < 90100
+      raise GenerationError, "referencing can only be used on postgres 10.0 and greater" if options[:referencing] && db_version < 100000
 
       sql = ''
 
@@ -472,6 +506,7 @@ $$ LANGUAGE plpgsql#{security ? " SECURITY #{security.to_s.upcase}" : ""};
 
       [sql, <<-SQL]
 CREATE TRIGGER #{prepared_name} #{options[:timing]} #{options[:events].join(" OR ")} #{of_clause}ON #{adapter.quote_table_name(options[:table])}
+#{referencing_clause}
 FOR EACH #{options[:for_each]}#{prepared_where && db_version >= 90000 ? " WHEN (" + prepared_where + ')': ''} EXECUTE PROCEDURE #{trigger_action};
       SQL
     end

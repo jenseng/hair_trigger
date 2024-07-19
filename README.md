@@ -125,6 +125,21 @@ trigger.after(:insert).declare("user_type text; status text") do
 end
 ```
 
+#### new_as(name) or old_as(name)
+PostgreSQL-specific option for accessing in the after trigger the table as it was before the operation (old) or as it is after the operation (new). This is useful in statement trigger when you want to compare the old and new values of all rows changed during an update trigger. For example:
+
+```ruby
+trigger.after(:update).for_each(:statement).new_as(:new_users).old_as(:old_users) do
+  <<-SQL
+    INSERT INTO user_changes(id, old_name, new_name) FROM (
+        SELECT new_users.id, old_users.name AS old_name, new_users.name AS new_name
+        FROM new_users
+        INNER JOIN old_users ON new_users.id = old_users.id
+      ) agg
+  SQL
+end
+```
+
 #### all
 Noop, useful for trigger groups (see below).
 
