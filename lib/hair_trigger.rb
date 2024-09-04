@@ -39,7 +39,12 @@ module HairTrigger
     end
 
     def migrator
-      if ActiveRecord::VERSION::STRING >= "7.1."
+      if Gem::Version.new("7.2.0") <= ActiveRecord.gem_version
+        connection = ActiveRecord::Tasks::DatabaseTasks.migration_connection_pool
+        schema_migration = connection.schema_migration
+        migrations = ActiveRecord::MigrationContext.new(migration_path, schema_migration).migrations
+        ActiveRecord::Migrator.new(:up, migrations, schema_migration, ActiveRecord::InternalMetadata.new(connection))
+      elsif Gem::Version.new("7.1.0") <= ActiveRecord.gem_version
         connection = ActiveRecord::Tasks::DatabaseTasks.migration_connection
         schema_migration = connection.schema_migration
         migrations = ActiveRecord::MigrationContext.new(migration_path, schema_migration).migrations
