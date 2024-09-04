@@ -8,6 +8,9 @@ require 'hair_trigger/schema_dumper'
 require 'hair_trigger/railtie' if defined?(Rails::Railtie)
 
 module HairTrigger
+  POSTGRESQL_ADAPTERS = %i[postgresql postgis]
+  MYSQL_ADAPTERS = %i[mysql mysql2rgeo trilogy]
+  SQLITE_ADAPTERS = %i[sqlite litedb]
 
   autoload :Builder, 'hair_trigger/builder'
   autoload :MigrationReader, 'hair_trigger/migration_reader'
@@ -233,14 +236,7 @@ end
     end
 
     def adapter_name_for(adapter)
-      adapter_name = adapter.adapter_name.downcase
-      adapter_name.sub!(/\d$/, '')
-      case adapter_name
-      when "litedb"
-        :sqlite
-      else
-        adapter_name.to_sym
-      end
+      adapter.adapter_name.downcase.sub(/\d$/, '').to_sym
     end
   end
 end

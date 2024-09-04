@@ -27,11 +27,11 @@ module HairTrigger
       name_clause = options[:only] ? "IN ('" + options[:only].join("', '") + "')" : nil
       adapter_name = HairTrigger.adapter_name_for(self)
       case adapter_name
-        when :sqlite
+        when *HairTrigger::SQLITE_ADAPTERS
           select_rows("SELECT name, sql FROM sqlite_master WHERE type = 'trigger' #{name_clause ? " AND name " + name_clause : ""}").each do |(name, definition)|
             triggers[name] = quote_table_name_in_trigger(definition) + ";\n"
           end
-        when :mysql, :trilogy, :mysql2rgeo
+        when *HairTrigger::MYSQL_ADAPTERS
           select_rows("SHOW TRIGGERS").each do |(name, event, table, actions, timing, created, sql_mode, definer)|
             definer = normalize_mysql_definer(definer)
             next if options[:only] && !options[:only].include?(name)
@@ -41,7 +41,7 @@ FOR EACH ROW
 #{actions}
             SQL
           end
-        when :postgresql, :postgis
+        when *POSTGRESQL_ADAPTERS
           function_conditions = "(SELECT typname FROM pg_type WHERE oid = prorettype) = 'trigger'"
           function_conditions << <<-SQL unless options[:simple_check]
             AND oid IN (
