@@ -2,6 +2,14 @@
 
 ## 1.1.x
 
+### 1.2.0
+
+- support rails 7.2 ([#126](https://github.com/jenseng/hair_trigger/pull/126))
+- add support for litedb adapter ([#120](https://github.com/jenseng/hair_trigger/pull/120))
+- add support for mysql2rgeo adapter ([#121](https://github.com/jenseng/hair_trigger/pull/121))
+- support referencing old and new tables ([#125](https://github.com/jenseng/hair_trigger/pull/125))
+- testing fixes, minor refactors (([#124](https://github.com/jenseng/hair_trigger/pull/124)), ([#127](https://github.com/jenseng/hair_trigger/pull/127)))
+
 ### 1.1.0
 
 - fix for rails 7+ compatibility ([#118](https://github.com/jenseng/hair_trigger/pull/118))

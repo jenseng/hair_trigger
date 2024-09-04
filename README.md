@@ -126,7 +126,7 @@ end
 ```
 
 #### new_as(name) or old_as(name)
-PostgreSQL-specific option for accessing in the after trigger the table as it was before the operation (old) or as it is after the operation (new). This is useful in statement trigger when you want to compare the old and new values of all rows changed during an update trigger. For example:
+PostgreSQL-specific option for "after" triggers to allow accessing the row as it was before the operation (`old`) or as it is after the operation (`new`). This is useful in statement trigger when you want to compare the old and new values of all rows changed during an update trigger. For example:
 
 ```ruby
 trigger.after(:update).for_each(:statement).new_as(:new_users).old_as(:old_users) do
