@@ -94,7 +94,14 @@ shared_context "hairtrigger utils" do
 
   def dump_schema
     io = StringIO.new
-    ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, io)
+    connection = if Gem::Version.new("7.2.0") <= ActiveRecord.gem_version
+                   ActiveRecord::Base.connection_pool
+                 else
+                   ActiveRecord::Base.connection
+                 end
+
+    ActiveRecord::SchemaDumper.dump(connection, io)
+
     io.rewind
     io.read
   end
