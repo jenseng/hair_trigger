@@ -20,17 +20,26 @@ namespace :db do
 
       ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: name)
-        connection_pool = ActiveRecord::Base.establish_connection(db_config)
+        connection = get_connection(ActiveRecord::Base.establish_connection(db_config))
 
         filename = dump_filename(db_config.name)
         ActiveRecord::SchemaDumper.previous_schema = File.exist?(filename) ? File.read(filename) : nil
 
         File.open(filename, "w") do |file|
-          ActiveRecord::SchemaDumper.dump(connection_pool.connection, file)
+
+          ActiveRecord::SchemaDumper.dump(connection, file)
         end
       end
 
       Rake::Task["db:schema:dump"].reenable
+    end
+
+    def get_connection(connection_pool)
+      if Gem::Version.new("7.2.0") <= ActiveRecord.gem_version
+        connection_pool
+      else
+        connection_pool.connection
+      end
     end
 
     def schema_file_type(format)
