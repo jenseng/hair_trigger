@@ -2,7 +2,7 @@ PATH
   remote: ..
   specs:
     hairtrigger (1.2.0)
-      activerecord (>= 6.0, < 8)
+      activerecord (>= 6.0, < 9)
       ruby2ruby (~> 2.4)
       ruby_parser (~> 3.10)
 

@@ -5,7 +5,7 @@ test:
   mysql2: &mysql2_defaults
     <<: *defaults
     username: root
-    prepared_statements: true
+    prepared_statements: false # See https://github.com/rails/rails/issues/53673
   postgresql: &postgres_defaults
     <<: *defaults
     min_messages: error
