@@ -1,6 +1,13 @@
 # Changelog
 
-## 1.1.x
+## 1.3.x
+
+### 1.3.0
+
+- support rails 8 ([#131](https://github.com/jenseng/hair_trigger/pull/131), [#133](https://github.com/jenseng/hair_trigger/pull/133))
+
+
+## 1.2.x
 
 ### 1.2.0
 
@@ -9,6 +16,8 @@
 - add support for mysql2rgeo adapter ([#121](https://github.com/jenseng/hair_trigger/pull/121))
 - support referencing old and new tables ([#125](https://github.com/jenseng/hair_trigger/pull/125))
 - testing fixes, minor refactors (([#124](https://github.com/jenseng/hair_trigger/pull/124)), ([#127](https://github.com/jenseng/hair_trigger/pull/127)))
+
+## 1.1.x
 
 ### 1.1.0
 
