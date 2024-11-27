@@ -23,4 +23,5 @@ Gem::Specification.new do |s|
   s.add_dependency 'activerecord', '>= 6.0', '< 9'
   s.add_dependency 'ruby_parser', '~> 3.10'
   s.add_dependency 'ruby2ruby', '~> 2.4'
+  s.add_dependency 'ostruct'
 end
