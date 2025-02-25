@@ -44,7 +44,7 @@ module HairTrigger
     end
 
     def name(name)
-      @errors << ["trigger name cannot exceed 63 for postgres", *HairTrigger::POSTGRESQL_ADAPTERS] if name.to_s.size > 63
+      @errors << ["trigger name cannot exceed 63 for postgres", *HairTrigger.hair_trigger_config.postgresql_adapters] if name.to_s.size > 63
       options[:name] = name.to_s
     end
 
@@ -54,7 +54,7 @@ module HairTrigger
     end
 
     def for_each(for_each)
-      @errors << ["sqlite and mysql don't support FOR EACH STATEMENT triggers", *HairTrigger::SQLITE_ADAPTERS, *HairTrigger::MYSQL_ADAPTERS] if for_each == :statement
+      @errors << ["sqlite and mysql don't support FOR EACH STATEMENT triggers", *HairTrigger.hair_trigger_config.sqlite_adapters, *HairTrigger.hair_trigger_config.mysql_adapters] if for_each == :statement
       raise DeclarationError, "invalid for_each" unless [:row, :statement].include?(for_each)
       options[:for_each] = for_each.to_s.upcase
     end
@@ -107,9 +107,9 @@ module HairTrigger
         raise DeclarationError, "trigger security should be :invoker, :definer, CURRENT_USER, or a valid user (e.g. 'user'@'host')"
       end
       # sqlite default is n/a, mysql default is :definer, postgres default is :invoker
-      @errors << ["sqlite doesn't support trigger security", *HairTrigger::SQLITE_ADAPTERS]
-      @errors << ["postgresql doesn't support arbitrary users for trigger security", *HairTrigger::POSTGRESQL_ADAPTERS] unless [:definer, :invoker].include?(user)
-      @errors << ["mysql doesn't support invoker trigger security", *HairTrigger::MYSQL_ADAPTERS] if user == :invoker
+      @errors << ["sqlite doesn't support trigger security", *HairTrigger.hair_trigger_config.sqlite_adapters]
+      @errors << ["postgresql doesn't support arbitrary users for trigger security", *HairTrigger.hair_trigger_config.postgresql_adapters] unless [:definer, :invoker].include?(user)
+      @errors << ["mysql doesn't support invoker trigger security", *HairTrigger.hair_trigger_config.mysql_adapters] if user == :invoker
       options[:security] = user
     end
 
@@ -122,8 +122,8 @@ module HairTrigger
       events << :insert if events.delete(:create)
       events << :delete if events.delete(:destroy)
       raise DeclarationError, "invalid events" unless events & [:insert, :update, :delete, :truncate] == events
-      @errors << ["sqlite and mysql triggers may not be shared by multiple actions", *HairTrigger::MYSQL_ADAPTERS, *HairTrigger::SQLITE_ADAPTERS] if events.size > 1
-      @errors << ["sqlite and mysql do not support truncate triggers", *HairTrigger::MYSQL_ADAPTERS, *HairTrigger::SQLITE_ADAPTERS] if events.include?(:truncate)
+      @errors << ["sqlite and mysql triggers may not be shared by multiple actions", *HairTrigger.hair_trigger_config.mysql_adapters, *HairTrigger.hair_trigger_config.sqlite_adapters] if events.size > 1
+      @errors << ["sqlite and mysql do not support truncate triggers", *HairTrigger.hair_trigger_config.mysql_adapters, *HairTrigger.hair_trigger_config.sqlite_adapters] if events.include?(:truncate)
       options[:events] = events.map{ |e| e.to_s.upcase }
     end
 
@@ -152,7 +152,7 @@ module HairTrigger
           def #{method}(*args, &block)
             @chained_calls << :#{method}
             if @triggers || @trigger_group
-              @errors << ["mysql doesn't support #{method} within a trigger group", *HairTrigger::MYSQL_ADAPTERS] unless [:name, :where, :all, :of].include?(:#{method})
+              @errors << ["mysql doesn't support #{method} within a trigger group", *HairTrigger.hair_trigger_config.mysql_adapters] unless [:name, :where, :all, :of].include?(:#{method})
             end
             set_#{method}(*args, &(block_given? ? block : nil))
           end
@@ -174,7 +174,7 @@ module HairTrigger
     chainable_methods :name, :on, :for_each, :before, :after, :where, :security, :timing, :events, :all, :nowrap, :of, :declare, :old_as, :new_as
 
     def create_grouped_trigger?
-      HairTrigger::MYSQL_ADAPTERS.include?(adapter_name)
+      HairTrigger.hair_trigger_config.mysql_adapters.include?(adapter_name)
     end
 
     def prepare!
@@ -234,11 +234,11 @@ module HairTrigger
 
         [generate_drop_trigger] +
         [case adapter_name
-          when *HairTrigger::SQLITE_ADAPTERS
+          when *HairTrigger.hair_trigger_config.sqlite_adapters
             generate_trigger_sqlite
-          when *HairTrigger::MYSQL_ADAPTERS
+          when *HairTrigger.hair_trigger_config.mysql_adapters
             generate_trigger_mysql
-          when *HairTrigger::POSTGRESQL_ADAPTERS
+          when *HairTrigger.hair_trigger_config.postgresql_adapters
             generate_trigger_postgresql
           else
             raise GenerationError, "don't know how to build #{adapter_name} triggers yet"
@@ -345,8 +345,8 @@ module HairTrigger
     def maybe_execute(&block)
       raise DeclarationError, "of may only be specified on update triggers" if options[:of] && options[:events] != ["UPDATE"]
       if block.arity > 0 # we're creating a trigger group, so set up some stuff and pass the buck
-        @errors << ["trigger group must specify timing and event(s) for mysql", *HairTrigger::MYSQL_ADAPTERS] unless options[:timing] && options[:events]
-        @errors << ["nested trigger groups are not supported for mysql", *HairTrigger::MYSQL_ADAPTERS] if @trigger_group
+        @errors << ["trigger group must specify timing and event(s) for mysql", *HairTrigger.hair_trigger_config.mysql_adapters] unless options[:timing] && options[:events]
+        @errors << ["nested trigger groups are not supported for mysql", *HairTrigger.hair_trigger_config.mysql_adapters] if @trigger_group
         @triggers = []
         block.call(self)
         raise DeclarationError, "trigger group did not define any triggers" if @triggers.empty?
@@ -375,9 +375,9 @@ module HairTrigger
       subtriggers = all_triggers(false)
       named_subtriggers = subtriggers.select{ |t| t.options[:name] }
       if named_subtriggers.present? && !options[:name]
-        @warnings << ["nested triggers have explicit names, but trigger group does not. trigger name will be inferred", *HairTrigger::MYSQL_ADAPTERS]
+        @warnings << ["nested triggers have explicit names, but trigger group does not. trigger name will be inferred", *HairTrigger.hair_trigger_config.mysql_adapters]
       elsif subtriggers.present? && !named_subtriggers.present? && options[:name]
-        @warnings << ["trigger group has an explicit name, but nested triggers do not. trigger names will be inferred", *HairTrigger::POSTGRESQL_ADAPTERS, *HairTrigger::SQLITE_ADAPTERS]
+        @warnings << ["trigger group has an explicit name, but nested triggers do not. trigger names will be inferred", *HairTrigger.hair_trigger_config.postgresql_adapters, *HairTrigger.hair_trigger_config.sqlite_adapters]
       end
     end
 
@@ -412,9 +412,9 @@ module HairTrigger
 
     def supports_of?
       case adapter_name
-      when *HairTrigger::SQLITE_ADAPTERS
+      when *HairTrigger.hair_trigger_config.sqlite_adapters
         true
-      when *HairTrigger::POSTGRESQL_ADAPTERS
+      when *HairTrigger.hair_trigger_config.postgresql_adapters
         db_version >= 90000
       else
         false
@@ -429,9 +429,9 @@ module HairTrigger
 
     def supports_referencing?
       case adapter_name
-      when *HairTrigger::SQLITE_ADAPTERS, *HairTrigger::MYSQL_ADAPTERS
+      when *HairTrigger.hair_trigger_config.sqlite_adapters, *HairTrigger.hair_trigger_config.mysql_adapters
         false
-      when *HairTrigger::POSTGRESQL_ADAPTERS
+      when *HairTrigger.hair_trigger_config.postgresql_adapters
         db_version >= 100000
       else
         false
@@ -440,9 +440,9 @@ module HairTrigger
 
     def generate_drop_trigger
       case adapter_name
-        when *HairTrigger::SQLITE_ADAPTERS, *HairTrigger::MYSQL_ADAPTERS
+        when *HairTrigger.hair_trigger_config.sqlite_adapters, *HairTrigger.hair_trigger_config.mysql_adapters
           "DROP TRIGGER IF EXISTS #{prepared_name};\n"
-        when *HairTrigger::POSTGRESQL_ADAPTERS
+        when *HairTrigger.hair_trigger_config.postgresql_adapters
           "DROP TRIGGER IF EXISTS #{prepared_name} ON #{adapter.quote_table_name(options[:table])};\nDROP FUNCTION IF EXISTS #{adapter.quote_table_name(prepared_name)}();\n"
         else
           raise GenerationError, "don't know how to drop #{adapter_name} triggers yet"
@@ -532,7 +532,7 @@ BEGIN
 
     def db_version
       @db_version ||= case adapter_name
-        when *HairTrigger::POSTGRESQL_ADAPTERS
+        when *HairTrigger.hair_trigger_config.postgresql_adapters
           adapter.send(:postgresql_version)
       end
     end
