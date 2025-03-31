@@ -12,11 +12,24 @@ module HairTrigger
   MYSQL_ADAPTERS = %i[mysql mysql2rgeo trilogy]
   SQLITE_ADAPTERS = %i[sqlite litedb]
 
+  autoload :Configuration, 'hair_trigger/configuration'
   autoload :Builder, 'hair_trigger/builder'
   autoload :MigrationReader, 'hair_trigger/migration_reader'
 
   class << self
     attr_writer :model_path, :schema_rb_path, :migration_path, :pg_schema
+
+    def configure
+      yield hair_trigger_config
+    end
+
+    def hair_trigger_config
+      @hair_trigger_config ||= Configuration.new(
+        postgresql_adapters: POSTGRESQL_ADAPTERS,
+        mysql_adapters:      MYSQL_ADAPTERS,
+        sqlite_adapters:     SQLITE_ADAPTERS
+      )
+    end
 
     def current_triggers
       # see what the models say there should be
