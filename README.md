@@ -338,6 +338,13 @@ ignore. Note that this behavior [may change](https://github.com/jenseng/hair_tri
 in a future release, meaning you'll first need to explicitly drop the
 existing trigger if you wish to redefine it.
 
+## Custom adapters
+
+Out of the box, HairTrigger supports the standard adapters for PostgreSQL, MySQL, and SQLite, plus several common variations (`postgis`, `mysql2rgeo`, `trilogy`, and `litedb`). If you would like to use HairTrigger with another compatible variation, you can dynamically add it to `HairTrigger.hair_trigger_configuration`, for example:
+```ruby
+HairTrigger.hair_trigger_configuration.postgresql_adapters << :postgresql_proxy
+```
+
 ## Gotchas
 
 * As is the case with `ActiveRecord::Base.update_all` or any direct SQL you do,
